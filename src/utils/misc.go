@@ -1,7 +1,5 @@
 package utils
 
-import "fmt"
-
-func Amogus() {
-	fmt.Println("amogus")
+func Amogus() string {
+	return "amogus"
 }
