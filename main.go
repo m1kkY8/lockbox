@@ -7,7 +7,7 @@ import (
 	"log"
 	_ "net/url"
 	"strings"
-	"time"
+	_ "time"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -24,13 +24,14 @@ type styles struct {
 }
 
 type model struct {
-	messages []string
-	input    textinput.Model
-	view     viewport.Model
-	styles   *styles
-	width    int
-	height   int
-	conn     *websocket.Conn
+	messages       []string
+	input          textinput.Model
+	view           viewport.Model
+	styles         *styles
+	width          int
+	height         int
+	conn           *websocket.Conn
+	messageChannel chan string
 }
 
 type message struct {
@@ -59,6 +60,23 @@ func CreateWebSocketConnection(url string) (*websocket.Conn, error) {
 	return conn, nil
 }
 
+func listenForMessages(m *model) tea.Cmd {
+	return func() tea.Msg {
+		return <-m.messageChannel // Block until a message is received
+	}
+}
+
+func (m *model) HandleIncomingMessage() {
+	for {
+		_, message, err := m.conn.ReadMessage()
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		m.messageChannel <- string(message)
+	}
+}
+
 func New() *model {
 	styles := DefaultStyle()
 	input := textinput.New()
@@ -71,18 +89,20 @@ func New() *model {
 	vp.SetContent("Welcome, start messaging")
 
 	return &model{
-		messages: []string{},
-		input:    input,
-		styles:   styles,
-		view:     vp,
+		messages:       []string{},
+		input:          input,
+		styles:         styles,
+		view:           vp,
+		messageChannel: make(chan string),
 	}
 }
 
-func (m model) Init() tea.Cmd {
+func (m *model) Init() tea.Cmd {
+	go m.HandleIncomingMessage()
 	return nil
 }
 
-func (m model) View() string {
+func (m *model) View() string {
 	return lipgloss.Place(
 		m.width,
 		m.height,
@@ -96,7 +116,7 @@ func (m model) View() string {
 	)
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 
@@ -121,26 +141,24 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if v == "/quit" {
 				return m, tea.Quit
 			}
-			// TODO: Ne apdejtovati veiwport ovde
-			// Napraviti go rutinu koja ce da slusa za poruke i sama apdejtuje viewport nezavisno od svega
-			m.messages = append(m.messages, m.styles.senderStyle.Render(time.Now().Format(time.TimeOnly)+" You: ")+v)
-			m.view.SetContent(strings.Join(m.messages, "\n"))
-			m.input.Reset()
-			m.view.GotoBottom()
 
+			m.input.Reset()
 			if m.conn != nil {
-				// wsMsg := message{
-				// 	Username: "test",
-				// 	Message:  v,
-				// 	To:       "",
-				// }
 				err := m.conn.WriteMessage(websocket.TextMessage, []byte(v))
 				if err != nil {
 					log.Printf("Error writing message: %v", err)
 				}
 			}
-			return m, nil
+			return m, listenForMessages(m)
 		}
+
+	case string:
+		// Handle incoming messages from the channel
+		m.messages = append(m.messages, msg)
+		m.view.SetContent(strings.Join(m.messages, "\n"))
+		m.input.Reset()
+		m.view.GotoBottom()
+		return m, listenForMessages(m)
 	}
 
 	m.input, cmd = m.input.Update(msg)
@@ -148,7 +166,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func main() {
-	url := "ws://localhost:42069/ws"
+	url := "ws://139.162.132.8:42069/ws"
+	// url := "ws://localhost:42069/ws"
 	conn, err := CreateWebSocketConnection(url)
 	if err != nil {
 		log.Printf("Error creating websocket connection: %v", err)
