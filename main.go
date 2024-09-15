@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"runtime"
 	"strings"
 	"time"
 
@@ -35,7 +36,7 @@ type model struct {
 	conn           *websocket.Conn
 	messageChannel chan string
 	username       string
-	userColor      int
+	userColor      string
 }
 
 type message struct {
@@ -44,13 +45,18 @@ type message struct {
 	To       string `json:"to"`
 }
 
+var (
+	color    string
+	username string
+)
+
 func GenerateRandomANSIColor() int {
 	// Seed the random number generator to ensure different results each time
 	// ANSI 8-bit colors range from 0 to 255
 	return rand.Intn(256)
 }
 
-func DefaultStyle() *styles {
+func DefaultStyle(userColor string) *styles {
 	border := lipgloss.NewStyle().
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color("63"))
@@ -59,7 +65,7 @@ func DefaultStyle() *styles {
 		border: border,
 		senderStyle: lipgloss.NewStyle().
 			Bold(true).
-			Foreground(lipgloss.Color(string("202"))),
+			Foreground(lipgloss.Color(string(userColor))),
 	}
 }
 
@@ -90,7 +96,7 @@ func (m *model) HandleIncomingMessage() {
 }
 
 func New() *model {
-	styles := DefaultStyle()
+	styles := DefaultStyle(color)
 	input := textinput.New()
 	input.Prompt = ""
 	input.Placeholder = "Message: "
@@ -182,11 +188,14 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func main() {
-	username := flag.String("u", "anon", "Username")
+	u := flag.String("u", "anon", "Username")
+	c := flag.String("c", "202", "Color for your username")
 	flag.Parse()
 
+	username = *u
+	color = *c
+
 	url := "ws://139.162.132.8:42069/ws"
-	// url := "ws://localhost:42069/ws"
 	conn, err := CreateWebSocketConnection(url)
 	if err != nil {
 		log.Printf("Error creating websocket connection: %v", err)
@@ -196,10 +205,12 @@ func main() {
 
 	teaModel := New()
 	teaModel.conn = conn
-	teaModel.username = *username
+	teaModel.username = username
+	teaModel.userColor = color
 
 	p := tea.NewProgram(teaModel, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		log.Println(err)
 	}
+	log.Printf("Number of goroutines: %d", runtime.NumGoroutine())
 }
