@@ -112,6 +112,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+q":
 			return m, tea.Quit
 
+			// na enter se salju poruke
 		case "enter":
 			v := m.input.Value()
 			if v == "" {
@@ -120,7 +121,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if v == "/quit" {
 				return m, tea.Quit
 			}
-
+			// TODO: Ne apdejtovati veiwport ovde
+			// Napraviti go rutinu koja ce da slusa za poruke i sama apdejtuje viewport nezavisno od svega
 			m.messages = append(m.messages, m.styles.senderStyle.Render(time.Now().Format(time.TimeOnly)+" You: ")+v)
 			m.view.SetContent(strings.Join(m.messages, "\n"))
 			m.input.Reset()
