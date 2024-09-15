@@ -156,7 +156,6 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Handle incoming messages from the channel
 		m.messages = append(m.messages, msg)
 		m.view.SetContent(strings.Join(m.messages, "\n"))
-		m.input.Reset()
 		m.view.GotoBottom()
 		return m, listenForMessages(m)
 	}
