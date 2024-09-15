@@ -5,12 +5,15 @@ package main
 
 import (
 	"log"
+	_ "net/url"
 	"strings"
+	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/gorilla/websocket"
 )
 
 // Add a purple, rectangular border
@@ -27,6 +30,13 @@ type model struct {
 	styles   *styles
 	width    int
 	height   int
+	conn     *websocket.Conn
+}
+
+type message struct {
+	Username string `json:"username"`
+	Message  string `json:"message"`
+	To       string `json:"to"`
 }
 
 func DefaultStyle() *styles {
@@ -38,6 +48,15 @@ func DefaultStyle() *styles {
 		border:      border,
 		senderStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("5")),
 	}
+}
+
+func CreateWebSocketConnection(url string) (*websocket.Conn, error) {
+	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
 }
 
 func New() *model {
@@ -98,11 +117,26 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if v == "" {
 				return m, nil
 			}
+			if v == "/quit" {
+				return m, tea.Quit
+			}
 
-			m.messages = append(m.messages, m.styles.senderStyle.Render("You: ")+v)
+			m.messages = append(m.messages, m.styles.senderStyle.Render(time.Now().Format(time.TimeOnly)+" You: ")+v)
 			m.view.SetContent(strings.Join(m.messages, "\n"))
 			m.input.Reset()
 			m.view.GotoBottom()
+
+			if m.conn != nil {
+				// wsMsg := message{
+				// 	Username: "test",
+				// 	Message:  v,
+				// 	To:       "",
+				// }
+				err := m.conn.WriteMessage(websocket.TextMessage, []byte(v))
+				if err != nil {
+					log.Printf("Error writing message: %v", err)
+				}
+			}
 			return m, nil
 		}
 	}
@@ -112,14 +146,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func main() {
-	f, err := tea.LogToFile("debug.log", "debug")
+	url := "ws://localhost:42069/ws"
+	conn, err := CreateWebSocketConnection(url)
 	if err != nil {
-		log.Println(err)
+		log.Printf("Error creating websocket connection: %v", err)
 	}
 
-	defer f.Close()
+	defer conn.Close()
 
-	p := tea.NewProgram(New(), tea.WithAltScreen())
+	teaModel := New()
+	teaModel.conn = conn
+
+	p := tea.NewProgram(teaModel, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		log.Println(err)
 	}
