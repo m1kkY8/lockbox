@@ -7,9 +7,9 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	_ "net/url"
+	"math/rand"
 	"strings"
-	_ "time"
+	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -35,6 +35,7 @@ type model struct {
 	conn           *websocket.Conn
 	messageChannel chan string
 	username       string
+	userColor      int
 }
 
 type message struct {
@@ -43,14 +44,22 @@ type message struct {
 	To       string `json:"to"`
 }
 
+func GenerateRandomANSIColor() int {
+	// Seed the random number generator to ensure different results each time
+	// ANSI 8-bit colors range from 0 to 255
+	return rand.Intn(256)
+}
+
 func DefaultStyle() *styles {
 	border := lipgloss.NewStyle().
 		BorderStyle(lipgloss.NormalBorder()).
 		BorderForeground(lipgloss.Color("63"))
 
 	return &styles{
-		border:      border,
-		senderStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("5")),
+		border: border,
+		senderStyle: lipgloss.NewStyle().
+			Bold(true).
+			Foreground(lipgloss.Color(string("202"))),
 	}
 }
 
@@ -141,13 +150,17 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if v == "" {
 				return m, nil
 			}
-			if v == "/quit" {
+			if v == ":q" {
 				return m, tea.Quit
 			}
 
 			m.input.Reset()
 			if m.conn != nil {
-				formated := fmt.Sprintf("%s: %s", m.username, v)
+
+				timestamp := time.Now().Format(time.TimeOnly)
+				usr := m.styles.senderStyle.Render(timestamp + " " + m.username)
+				formated := fmt.Sprintf("%s: %s", usr, v)
+
 				err := m.conn.WriteMessage(websocket.TextMessage, []byte(formated))
 				if err != nil {
 					log.Printf("Error writing message: %v", err)
