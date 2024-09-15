@@ -4,6 +4,8 @@ package main
 // component library.
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	_ "net/url"
 	"strings"
@@ -32,6 +34,7 @@ type model struct {
 	height         int
 	conn           *websocket.Conn
 	messageChannel chan string
+	username       string
 }
 
 type message struct {
@@ -144,7 +147,8 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			m.input.Reset()
 			if m.conn != nil {
-				err := m.conn.WriteMessage(websocket.TextMessage, []byte(v))
+				formated := fmt.Sprintf("%s: %s", m.username, v)
+				err := m.conn.WriteMessage(websocket.TextMessage, []byte(formated))
 				if err != nil {
 					log.Printf("Error writing message: %v", err)
 				}
@@ -165,6 +169,9 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func main() {
+	username := flag.String("u", "anon", "Username")
+	flag.Parse()
+
 	url := "ws://139.162.132.8:42069/ws"
 	// url := "ws://localhost:42069/ws"
 	conn, err := CreateWebSocketConnection(url)
@@ -176,6 +183,7 @@ func main() {
 
 	teaModel := New()
 	teaModel.conn = conn
+	teaModel.username = *username
 
 	p := tea.NewProgram(teaModel, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
