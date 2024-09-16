@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"regexp"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -14,6 +15,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/gorilla/websocket"
 	"github.com/m1kkY8/gochat/src/styles"
+	"github.com/gen2brain/beeep"
 )
 
 type Model struct {
@@ -57,9 +59,27 @@ func (m *Model) HandleIncomingMessage() {
 			}
 			return
 		}
-
 		// Successfully received a message
 		m.MessageChannel <- string(message)
+		Notify(m,string(message))
+	}
+}
+
+func Notify(m *Model, msg string){
+	reg := regexp.MustCompile(`\x1b\[[0-9;]*m`)
+	cleanedMessage := reg.ReplaceAllString(msg, "")
+	partMsg := strings.SplitN(cleanedMessage, ": ",2)
+	getPartUser := strings.Split(partMsg[0]," ")
+	fromUser := getPartUser[1]
+
+	if(fromUser == m.Username){
+		return
+	}
+
+	formatMsg := partMsg[1]
+	err := beeep.Notify(fromUser ,formatMsg , "assets/amogus.png")
+	if err != nil {
+    		panic(err)
 	}
 }
 
