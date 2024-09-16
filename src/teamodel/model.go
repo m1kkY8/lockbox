@@ -3,19 +3,18 @@ package teamodel
 import (
 	"fmt"
 	"log"
-	"net"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
-	"regexp"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/gen2brain/beeep"
 	"github.com/gorilla/websocket"
 	"github.com/m1kkY8/gochat/src/styles"
-	"github.com/gen2brain/beeep"
 )
 
 type Model struct {
@@ -33,53 +32,41 @@ type Model struct {
 
 var mutex sync.Mutex
 
-func listenForMessages(m *Model) tea.Cmd {
+func listenForMessages(m Model) tea.Cmd {
 	return func() tea.Msg {
 		return <-m.MessageChannel // Block until a message is received
 	}
 }
 
-func (m *Model) HandleIncomingMessage() {
+func (m Model) HandleIncomingMessage() {
 	for {
 		_, message, err := m.Conn.ReadMessage()
 		if err != nil {
-			if opErr, ok := err.(*net.OpError); ok {
-				log.Printf("Network operation error: %v (Op: %v, Net: %v, Addr: %v)", opErr.Err, opErr.Op, opErr.Net, opErr.Addr)
-			}
-
-			// Log detailed error information
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("Connection closed unexpectedly: %v", err)
-				return
-			} else if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
-				log.Printf("Connection closed normally: %v", err)
-				return
-			} else {
-				log.Printf("Read error: %v (type: %T)", err, err)
-			}
-			return
+			log.Printf("Error reading message: %v", err)
+			break
 		}
 		// Successfully received a message
 		m.MessageChannel <- string(message)
-		Notify(m,string(message))
+		Notify(m, string(message))
 	}
 }
 
-func Notify(m *Model, msg string){
+func Notify(m Model, msg string) {
 	reg := regexp.MustCompile(`\x1b\[[0-9;]*m`)
 	cleanedMessage := reg.ReplaceAllString(msg, "")
-	partMsg := strings.SplitN(cleanedMessage, ": ",2)
-	getPartUser := strings.Split(partMsg[0]," ")
+	partMsg := strings.SplitN(cleanedMessage, ": ", 2)
+	getPartUser := strings.Split(partMsg[0], " ")
 	fromUser := getPartUser[1]
 
-	if(fromUser == m.Username){
+	if fromUser == m.Username {
 		return
 	}
 
 	formatMsg := partMsg[1]
-	err := beeep.Notify(fromUser ,formatMsg , "assets/amogus.png")
+	err := beeep.Notify(fromUser, formatMsg, "assets/amogus.png")
 	if err != nil {
-    		panic(err)
+		log.Println(err)
+		panic(err)
 	}
 }
 
@@ -103,12 +90,12 @@ func New(color string) *Model {
 	}
 }
 
-func (m *Model) Init() tea.Cmd {
+func (m Model) Init() tea.Cmd {
 	go m.HandleIncomingMessage()
 	return listenForMessages(m)
 }
 
-func (m *Model) View() string {
+func (m Model) View() string {
 	return lipgloss.Place(
 		m.Width,
 		m.Height,
@@ -122,7 +109,7 @@ func (m *Model) View() string {
 	)
 }
 
-func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 
@@ -176,7 +163,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m *Model) CloseConnection() {
+func (m Model) CloseConnection() {
 	if m.Conn != nil {
 		err := m.Conn.Close()
 		if err != nil {

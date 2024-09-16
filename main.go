@@ -5,7 +5,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"runtime"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/gorilla/websocket"
@@ -37,10 +40,7 @@ func main() {
 	c := flag.String("c", "202", "Color for your username")
 	flag.Parse()
 
-	username = *u
-	color = *c
-
-	url := "ws://139.162.132.8:42069/ws"
+	url := "ws://139.162.132.8:1337/ws"
 	conn, err := CreateWebSocketConnection(url)
 	if err != nil {
 		log.Printf("Error creating websocket connection: %v", err)
@@ -49,15 +49,25 @@ func main() {
 
 	defer conn.Close()
 
+	color = *c
+	username = *u
+
+	time.Sleep(time.Second * 1)
+
 	teaModel := teamodel.New(color)
 	teaModel.Conn = conn
 	teaModel.Username = username
 	teaModel.UserColor = color
+
+	// go teaModel.HandleIncomingMessage()
+
+	fmt.Println("routine1\n", runtime.NumGoroutine())
 
 	p := tea.NewProgram(teaModel, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		log.Println(err)
 	}
 
+	fmt.Println("routine2\n", runtime.NumGoroutine())
 	teaModel.CloseConnection()
 }
