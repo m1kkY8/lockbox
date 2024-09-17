@@ -2,6 +2,7 @@ package styles
 
 import (
 	"math/rand/v2"
+	"strconv"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -11,10 +12,8 @@ type Styles struct {
 	SenderStyle lipgloss.Style
 }
 
-func GenerateRandomANSIColor() int {
-	// Seed the random number generator to ensure different results each time
-	// ANSI 8-bit colors range from 0 to 255
-	return rand.IntN(256)
+func GenerateRandomANSIColor() string {
+	return strconv.Itoa(rand.IntN(256))
 }
 
 func DefaultStyle(userColor string) *Styles {
