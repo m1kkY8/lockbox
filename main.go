@@ -5,9 +5,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
-	"runtime"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -47,8 +45,6 @@ func main() {
 		return
 	}
 
-	defer conn.Close()
-
 	color = *c
 	username = *u
 
@@ -59,15 +55,8 @@ func main() {
 	teaModel.Username = username
 	teaModel.UserColor = color
 
-	// go teaModel.HandleIncomingMessage()
-
-	fmt.Println("routine1\n", runtime.NumGoroutine())
-
 	p := tea.NewProgram(teaModel, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		log.Println(err)
 	}
-
-	fmt.Println("routine2\n", runtime.NumGoroutine())
-	teaModel.CloseConnection()
 }

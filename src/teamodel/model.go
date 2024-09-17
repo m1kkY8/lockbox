@@ -3,7 +3,6 @@ package teamodel
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -12,8 +11,8 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/gen2brain/beeep"
 	"github.com/gorilla/websocket"
+	"github.com/m1kkY8/gochat/src/notification"
 	"github.com/m1kkY8/gochat/src/styles"
 )
 
@@ -42,31 +41,16 @@ func (m Model) HandleIncomingMessage() {
 	for {
 		_, message, err := m.Conn.ReadMessage()
 		if err != nil {
-			log.Printf("Error reading message: %v", err)
-			break
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
+				log.Printf("Unexpected error reading message: %v", err)
+			} else {
+				log.Println("Connection closed gracefully, stopping message handling.")
+			}
+			return
 		}
-		// Successfully received a message
 		m.MessageChannel <- string(message)
-		Notify(m, string(message))
-	}
-}
 
-func Notify(m Model, msg string) {
-	reg := regexp.MustCompile(`\x1b\[[0-9;]*m`)
-	cleanedMessage := reg.ReplaceAllString(msg, "")
-	partMsg := strings.SplitN(cleanedMessage, ": ", 2)
-	getPartUser := strings.Split(partMsg[0], " ")
-	fromUser := getPartUser[1]
-
-	if fromUser == m.Username {
-		return
-	}
-
-	formatMsg := partMsg[1]
-	err := beeep.Notify(fromUser, formatMsg, "assets/amogus.png")
-	if err != nil {
-		log.Println(err)
-		panic(err)
+		notification.Notify(string(message), m.Username)
 	}
 }
 
@@ -148,7 +132,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					break
 				}
 			}
-			return m, listenForMessages(m)
+			return m, nil
 		}
 
 	case string:
@@ -161,13 +145,4 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	m.Input, cmd = m.Input.Update(msg)
 	return m, cmd
-}
-
-func (m Model) CloseConnection() {
-	if m.Conn != nil {
-		err := m.Conn.Close()
-		if err != nil {
-			log.Printf("Error closing WebSocket connection: %v", err)
-		}
-	}
 }
