@@ -10,4 +10,8 @@ run:
 clean:
 	@rm -rf ./bin
 
+install:
+	@go build
+	@go install
+
 .PHONY: build run
