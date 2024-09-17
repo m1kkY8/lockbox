@@ -6,8 +6,17 @@
 
 ## Instalation
 
-- For now just run gochat binary
-- Or build from source
+1. Using go install
+
+```
+go install github.com/m1kkY8/gochat@latest
+```
+
+2. From source
+
+```
+go build && go install
+```
 
 ## Usage
 
