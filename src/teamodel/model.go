@@ -1,19 +1,19 @@
 package teamodel
 
 import (
-	"fmt"
 	"log"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/gorilla/websocket"
+
 	"github.com/m1kkY8/gochat/src/notification"
 	"github.com/m1kkY8/gochat/src/styles"
+	"github.com/m1kkY8/gochat/src/util"
 )
 
 type Model struct {
@@ -54,9 +54,10 @@ func (m Model) HandleIncomingMessage() {
 	}
 }
 
-func New(color string) *Model {
+func New(color string, username string, conn *websocket.Conn) *Model {
 	styles := styles.DefaultStyle(color)
 	input := textinput.New()
+
 	input.Prompt = ""
 	input.Placeholder = "Message: "
 	input.Width = 50
@@ -66,10 +67,13 @@ func New(color string) *Model {
 	vp.SetContent("Welcome, start messaging")
 
 	return &Model{
-		Messages:       []string{},
+		Conn:           conn,
+		UserColor:      color,
+		Username:       username,
 		Input:          input,
 		Styles:         styles,
 		Viewport:       vp,
+		Messages:       []string{},
 		MessageChannel: make(chan string),
 	}
 }
@@ -106,7 +110,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+q":
+		case "ctrl+q", "ctrl+c":
 			return m, tea.Quit
 
 			// na enter se salju poruke
@@ -122,11 +126,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.Input.Reset()
 			if m.Conn != nil {
 
-				timestamp := time.Now().Format(time.TimeOnly)
-				usr := m.Styles.SenderStyle.Render(timestamp + " " + m.Username)
-				formated := fmt.Sprintf("%s: %s", usr, v)
+				formatedMessage := util.Format(v, m.Username, m.Styles.SenderStyle)
 
-				err := m.Conn.WriteMessage(websocket.TextMessage, []byte(formated))
+				err := m.Conn.WriteMessage(websocket.TextMessage, []byte(formatedMessage))
 				if err != nil {
 					log.Printf("Error writing message: %v", err)
 					break
@@ -136,7 +138,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case string:
-		// Handle incoming messages from the channel
 		m.Messages = append(m.Messages, msg)
 		m.Viewport.SetContent(strings.Join(m.Messages, "\n"))
 		m.Viewport.GotoBottom()
