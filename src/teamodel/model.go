@@ -4,6 +4,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
@@ -11,43 +12,66 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/gorilla/websocket"
 
+	"github.com/m1kkY8/gochat/src/message"
 	"github.com/m1kkY8/gochat/src/styles"
-	"github.com/m1kkY8/gochat/src/util"
 )
 
 type Model struct {
-	Messages       []string
-	Input          textinput.Model
-	Viewport       viewport.Model
-	Styles         *styles.Styles
-	Width          int
-	Height         int
-	Conn           *websocket.Conn
-	MessageChannel chan string
-	Username       string
-	UserColor      string
+	Input           textinput.Model
+	Viewport        viewport.Model
+	OnlineUsers     viewport.Model
+	Styles          *styles.Styles
+	Width           int
+	Height          int
+	Conn            *websocket.Conn
+	Username        string
+	UserColor       string
+	MessageChannel  chan string
+	Jebmti          []string
+	OnlineUsersChan chan []string
+	Messages        []string
 }
 
 var mutex sync.Mutex
 
+type Users struct {
+	Content []string `msgpack:"content"`
+}
+
 func listenForMessages(m Model) tea.Cmd {
 	return func() tea.Msg {
-		return <-m.MessageChannel // Block until a message is received
+		return <-m.MessageChannel
 	}
 }
 
-func (m Model) HandleIncomingMessage() {
+func listenForOnline(m Model) tea.Cmd {
+	return func() tea.Msg {
+		return <-m.OnlineUsersChan
+	}
+}
+
+func (m Model) RecieveMessages() {
 	for {
-		_, message, err := m.Conn.ReadMessage()
+		_, byteMessage, err := m.Conn.ReadMessage()
 		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseNormalClosure) {
-				log.Printf("Unexpected error reading message: %v", err)
-			} else {
-				log.Println("Connection closed gracefully, stopping message handling.")
-			}
 			return
 		}
-		m.MessageChannel <- string(message)
+
+		decodedMsg, err := message.DecodeMessage(byteMessage)
+		if err != nil {
+			log.Println("Failed decoding")
+			continue
+		}
+
+		if decodedMsg.Type == message.ServerMessage {
+			m.OnlineUsersChan <- strings.Split(decodedMsg.Content, " ")
+			continue
+		} else {
+			formattedMessage := message.Format(decodedMsg)
+			m.MessageChannel <- formattedMessage
+
+		}
+
 	}
 }
 
@@ -63,32 +87,43 @@ func New(color string, username string, conn *websocket.Conn) *Model {
 	vp := viewport.New(50, 20)
 	vp.SetContent("Welcome, start messaging")
 
+	onlineList := viewport.New(20, 20)
+	onlineList.SetContent("online")
+
 	return &Model{
-		Conn:           conn,
-		UserColor:      color,
-		Username:       username,
-		Input:          input,
-		Styles:         styles,
-		Viewport:       vp,
-		Messages:       []string{},
-		MessageChannel: make(chan string),
+		Conn:            conn,
+		UserColor:       color,
+		Username:        username,
+		Input:           input,
+		Styles:          styles,
+		Viewport:        vp,
+		OnlineUsers:     onlineList,
+		Messages:        []string{},
+		MessageChannel:  make(chan string),
+		OnlineUsersChan: make(chan []string),
 	}
 }
 
 func (m Model) Init() tea.Cmd {
-	go m.HandleIncomingMessage()
-	return listenForMessages(m)
+	go m.RecieveMessages()
+	return tea.Batch(listenForMessages(m), listenForOnline(m))
+	// return nil
 }
 
 func (m Model) View() string {
 	return lipgloss.Place(
 		m.Width,
 		m.Height,
-		lipgloss.Center,
-		lipgloss.Bottom,
+		lipgloss.Top,
+		lipgloss.Right,
 		lipgloss.JoinVertical(
-			lipgloss.Bottom,
-			m.Styles.Border.Render(m.Viewport.View()),
+			lipgloss.Center,
+			lipgloss.JoinHorizontal(
+				lipgloss.Center,
+				m.Styles.Border.Render(m.Viewport.View()),
+				m.Styles.Border.Render(m.OnlineUsers.View()),
+			),
+			// m.Styles.Border.Render(m.OnlineUsers.View()),
 			m.Styles.Border.Render(m.Input.View()),
 		),
 	)
@@ -101,9 +136,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
 		m.Height = msg.Height
-		m.Input.Width = msg.Width - 5
-		m.Viewport.Width = msg.Width - 4
-		m.Viewport.Height = msg.Height - 5
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -122,10 +154,21 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			m.Input.Reset()
 			if m.Conn != nil {
+				timestamp := time.Now().Format(time.TimeOnly)
 
-				formatedMessage := util.Format(v, m.Username, m.Styles.SenderStyle)
+				var kurac message.Message
+				kurac.Author = m.Styles.SenderStyle.Render(m.Username)
+				kurac.Timestamp = m.Styles.SenderStyle.Render(timestamp)
+				kurac.Content = v
+				kurac.To = ""
 
-				err := m.Conn.WriteMessage(websocket.TextMessage, []byte(formatedMessage))
+				byteMessage, err := message.EncodeMessage(kurac)
+				if err != nil {
+					log.Println("Failed encoding message")
+					break
+				}
+
+				err = m.Conn.WriteMessage(websocket.BinaryMessage, byteMessage)
 				if err != nil {
 					log.Printf("Error writing message: %v", err)
 					break
@@ -139,6 +182,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Viewport.SetContent(strings.Join(m.Messages, "\n"))
 		m.Viewport.GotoBottom()
 		return m, listenForMessages(m)
+
+	case []string:
+
+		m.OnlineUsers.SetContent(strings.Join(msg, "\n"))
+		// m.Messages = append(m.Messages, amogus)
+		// m.Viewport.SetContent(strings.Join(m.Messages, "\n"))
+		// m.Viewport.GotoBottom()
+		return m, listenForOnline(m)
 	}
 
 	m.Input, cmd = m.Input.Update(msg)
