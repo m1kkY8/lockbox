@@ -108,7 +108,7 @@ func New(color string, username string, conn *websocket.Conn) *Model {
 func (m Model) Init() tea.Cmd {
 	go m.RecieveMessages()
 	return tea.Batch(listenForMessages(m), listenForOnline(m))
-	//return nil
+	// return nil
 }
 
 func (m Model) View() string {
@@ -200,7 +200,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, listenForMessages(m)
 
 	case []string:
-		m.OnlineUsers.SetContent("Online\n\n" + strings.Join(msg, "\n"))
+
+		var lista []string
+		for _, name := range msg {
+			tokens := strings.Split(name, ":")
+			lista = append(lista, lipgloss.NewStyle().
+				Foreground(lipgloss.Color(tokens[0])).
+				Render(tokens[1]))
+		}
+
+		title := lipgloss.
+			NewStyle().
+			Bold(true).
+			Italic(true).
+			Foreground(lipgloss.Color("40")).
+			Render("Online:") + "\n"
+
+		m.OnlineUsers.SetContent(title + strings.Join(lista, "\n"))
 		return m, listenForOnline(m)
 	}
 

@@ -8,7 +8,7 @@ import (
 
 type Handshake struct {
 	Username  string `msgpack:"username"`
-	Color     string `msgmsgpack:"color"`
+	Color     string `msgpack:"color"`
 	ClientId  string `msgpack:"client_id"`
 	PublicKey string `msgpack:"pubkey"`
 }
