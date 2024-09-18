@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"log"
-	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/m1kkY8/gochat/src/connection"
@@ -34,11 +33,25 @@ func main() {
 		return
 	}
 
-	time.Sleep(time.Second * 1)
+	var handshake connection.Handshake
+
+	handshake.Username = *u
+	handshake.ClientId = connection.GenerateUUID()
+	handshake.PublicKey = "kljuc"
+
+	err = connection.SendHandshake(conn, handshake)
+	if err != nil {
+		log.Println("error sending handshake")
+	}
 
 	teaModel := teamodel.New(*c, *u, conn)
+	start(teaModel)
+}
 
-	p := tea.NewProgram(teaModel, tea.WithAltScreen())
+func start(teaModel *teamodel.Model) {
+	p := tea.NewProgram(teaModel,
+		tea.WithAltScreen(),
+		tea.WithMouseCellMotion())
 	if _, err := p.Run(); err != nil {
 		log.Println(err)
 	}
