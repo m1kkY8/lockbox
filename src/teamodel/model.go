@@ -11,7 +11,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/gorilla/websocket"
 
-	"github.com/m1kkY8/gochat/src/notification"
 	"github.com/m1kkY8/gochat/src/styles"
 	"github.com/m1kkY8/gochat/src/util"
 )
@@ -49,8 +48,6 @@ func (m Model) HandleIncomingMessage() {
 			return
 		}
 		m.MessageChannel <- string(message)
-
-		notification.Notify(string(message), m.Username)
 	}
 }
 
