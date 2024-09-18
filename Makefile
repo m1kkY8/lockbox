@@ -14,4 +14,4 @@ install:
 	@go build
 	@go install
 
-.PHONY: build run
+.PHONY: build run install
