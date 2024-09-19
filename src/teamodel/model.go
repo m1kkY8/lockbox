@@ -144,8 +144,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.Width = currWidth
 		m.Height = currHeight
 		m.Viewport.Height = currHeight - 5
-		m.Viewport.Width = currWidth - (currWidth / 4) - 1
-		m.OnlineUsers.Width = (currWidth / 4) - 5
+		m.Viewport.Width = currWidth - (currWidth / 5) - 1
+		m.OnlineUsers.Width = (currWidth / 5) - 5
 		m.OnlineUsers.Height = currHeight - 5
 
 		m.Viewport.HighPerformanceRendering = useHighPerformanceRenderer
