@@ -16,6 +16,8 @@ import (
 	"github.com/m1kkY8/gochat/src/styles"
 )
 
+const useHighPerformanceRenderer = false
+
 type Model struct {
 	Input           textinput.Model
 	Viewport        viewport.Model
@@ -78,7 +80,6 @@ func (m Model) RecieveMessages() {
 func New(color string, username string, conn *websocket.Conn) *Model {
 	styles := styles.DefaultStyle(color)
 	input := textinput.New()
-
 	input.Prompt = ""
 	input.Placeholder = "Message: "
 	input.Width = 50
@@ -107,15 +108,15 @@ func New(color string, username string, conn *websocket.Conn) *Model {
 func (m Model) Init() tea.Cmd {
 	go m.RecieveMessages()
 	return tea.Batch(listenForMessages(m), listenForOnline(m))
-	// return nil
+	//return nil
 }
 
 func (m Model) View() string {
 	return lipgloss.Place(
 		m.Width,
 		m.Height,
-		lipgloss.Top,
-		lipgloss.Right,
+		lipgloss.Center,
+		lipgloss.Center,
 		lipgloss.JoinVertical(
 			lipgloss.Center,
 			lipgloss.JoinHorizontal(
@@ -130,13 +131,28 @@ func (m Model) View() string {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
-		m.Width = msg.Width
-		m.Height = msg.Height
+		currWidth := msg.Width
+		currHeight := msg.Height
+		m.Input.Width = currWidth - 5
+		m.Width = currWidth
+		m.Height = currHeight
+		m.Viewport.Height = currHeight - 5
+		m.Viewport.Width = currWidth - (currWidth / 4) - 1
+		m.OnlineUsers.Width = (currWidth / 4) - 5
+		m.OnlineUsers.Height = currHeight - 5
 
+		m.Viewport.HighPerformanceRendering = useHighPerformanceRenderer
+
+		if useHighPerformanceRenderer {
+			cmds = append(cmds, viewport.Sync(m.Viewport))
+		}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+q", "ctrl+c":
@@ -184,14 +200,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, listenForMessages(m)
 
 	case []string:
-
-		m.OnlineUsers.SetContent(strings.Join(msg, "\n"))
-		// m.Messages = append(m.Messages, amogus)
-		// m.Viewport.SetContent(strings.Join(m.Messages, "\n"))
-		// m.Viewport.GotoBottom()
+		m.OnlineUsers.SetContent("Online\n\n" + strings.Join(msg, "\n"))
 		return m, listenForOnline(m)
 	}
 
+	m.Viewport, cmd = m.Viewport.Update(msg)
+	cmds = append(cmds, cmd)
 	m.Input, cmd = m.Input.Update(msg)
-	return m, cmd
+	cmds = append(cmds, cmd)
+	return m, tea.Batch(cmds...)
 }

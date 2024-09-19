@@ -38,6 +38,7 @@ func main() {
 	handshake.Username = *u
 	handshake.ClientId = connection.GenerateUUID()
 	handshake.PublicKey = "kljuc"
+	handshake.Color = *c
 
 	err = connection.SendHandshake(conn, handshake)
 	if err != nil {
