@@ -47,7 +47,7 @@ func ValidateConfig(c Config) error {
 	return nil
 }
 
-func GetUrl(c Config) string {
+func GetUrl(c Config) url.URL {
 	scheme := "ws"
 	host := c.ServerIp
 	port := c.Port
@@ -59,5 +59,5 @@ func GetUrl(c Config) string {
 		Host:   fmt.Sprintf("%s:%s", host, port),
 		Path:   path,
 	}
-	return u.String()
+	return u
 }

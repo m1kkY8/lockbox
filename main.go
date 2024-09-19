@@ -19,7 +19,7 @@ func main() {
 
 	url := config.GetUrl(conf)
 
-	conn, err := connection.ConnectToServer(url)
+	conn, err := connection.ConnectToServer(url.String())
 	if err != nil {
 		log.Printf("Error creating websocket connection: %v", err)
 		return
