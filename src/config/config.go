@@ -12,15 +12,13 @@ import (
 type Config struct {
 	Username string
 	Color    string
-	ServerIp string
-	Port     string
+	Host     string
 }
 
 func LoadConfig() Config {
 	u := flag.String("u", "anon", "Username")
 	c := flag.String("c", "", "Color for your username, use -c=help for all colors")
-	i := flag.String("ip", "", "IP address of server")
-	p := flag.String("p", "", "Port")
+	h := flag.String("ip", "", "IP address of server")
 	flag.Parse()
 
 	if *c == "help" {
@@ -35,28 +33,26 @@ func LoadConfig() Config {
 	return Config{
 		Username: *u,
 		Color:    *c,
-		ServerIp: *i,
-		Port:     *p,
+		Host:     *h,
 	}
 }
 
 func ValidateConfig(c Config) error {
-	if c.ServerIp == "" || c.Port == "" {
+	if c.Host == "" {
 		return fmt.Errorf("please provide IP and port of server and try again, use -h for help")
 	}
 	return nil
 }
 
 func GetUrl(c Config) url.URL {
-	scheme := "ws"
-	host := c.ServerIp
-	port := c.Port
+	scheme := "wss"
+	host := c.Host
 	path := "/ws"
 
 	// Construct URL
 	u := url.URL{
 		Scheme: scheme,
-		Host:   fmt.Sprintf("%s:%s", host, port),
+		Host:   host,
 		Path:   path,
 	}
 	return u
