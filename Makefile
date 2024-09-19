@@ -5,7 +5,7 @@ build:
 	@go build -o ${BINARY_NAME} ${GO_MAIN}
 
 run:
-	@gochat -u Mile -c 159
+	@gochat -u Mile -c 159 -ip prod -p 1337
 
 clean:
 	@rm -rf ./bin
