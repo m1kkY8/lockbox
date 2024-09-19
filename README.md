@@ -1,5 +1,7 @@
 # PoC instant messaging service
 
+![Demo](./pics/chat.gif)
+
 # Dependencies
 
 - Latest version of Go (1.23.1 at the moment)
