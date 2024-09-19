@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -14,6 +15,8 @@ import (
 func main() {
 	u := flag.String("u", "anon", "Username")
 	c := flag.String("c", "", "Color for your username, use -c=help for all colors")
+	i := flag.String("ip", "", "IP address of server")
+	p := flag.String("p", "", "Port")
 	flag.Parse()
 
 	if *c == "help" {
@@ -25,7 +28,12 @@ func main() {
 		*c = styles.GenerateRandomANSIColor()
 	}
 
-	url := "ws://139.162.132.8:1337/ws"
+	if *i == "" || *p == "" {
+		fmt.Println("Please provide IP and port of server and try again, use -h for help")
+		return
+	}
+
+	url := fmt.Sprintf("ws://%s:%s/ws", *i, *p)
 
 	conn, err := connection.ConnectToServer(url)
 	if err != nil {
