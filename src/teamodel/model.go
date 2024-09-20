@@ -1,17 +1,17 @@
 package teamodel
 
 import (
+	"fmt"
 	"log"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/charmbracelet/bubbles/textinput"
-	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/gorilla/websocket"
 
+	"github.com/m1kkY8/gochat/src/comps"
 	"github.com/m1kkY8/gochat/src/message"
 	"github.com/m1kkY8/gochat/src/styles"
 )
@@ -20,8 +20,8 @@ const useHighPerformanceRenderer = false
 
 type Model struct {
 	Input           textinput.Model
-	Viewport        viewport.Model
-	OnlineUsers     viewport.Model
+	Viewport        comps.Model
+	OnlineUsers     comps.Model
 	Styles          *styles.Styles
 	Width           int
 	Height          int
@@ -29,15 +29,8 @@ type Model struct {
 	Username        string
 	UserColor       string
 	MessageChannel  chan string
-	Jebmti          []string
 	OnlineUsersChan chan []string
-	Messages        []string
-}
-
-var mutex sync.Mutex
-
-type Users struct {
-	Content []string `msgpack:"content"`
+	Messages        string
 }
 
 func listenForMessages(m Model) tea.Cmd {
@@ -85,10 +78,10 @@ func New(color string, username string, conn *websocket.Conn) *Model {
 	input.Width = 50
 	input.Focus()
 
-	vp := viewport.New(50, 20)
+	vp := comps.New(50, 20)
 	vp.SetContent("Welcome, start messaging")
 
-	onlineList := viewport.New(20, 20)
+	onlineList := comps.New(20, 20)
 	onlineList.SetContent("online")
 
 	return &Model{
@@ -99,7 +92,7 @@ func New(color string, username string, conn *websocket.Conn) *Model {
 		Styles:          styles,
 		Viewport:        vp,
 		OnlineUsers:     onlineList,
-		Messages:        []string{},
+		Messages:        "",
 		MessageChannel:  make(chan string),
 		OnlineUsersChan: make(chan []string),
 	}
@@ -108,7 +101,6 @@ func New(color string, username string, conn *websocket.Conn) *Model {
 func (m Model) Init() tea.Cmd {
 	go m.RecieveMessages()
 	return tea.Batch(listenForMessages(m), listenForOnline(m))
-	// return nil
 }
 
 func (m Model) View() string {
@@ -124,7 +116,6 @@ func (m Model) View() string {
 				m.Styles.Border.Render(m.Viewport.View()),
 				m.Styles.Border.Render(m.OnlineUsers.View()),
 			),
-			// m.Styles.Border.Render(m.OnlineUsers.View()),
 			m.Styles.Border.Render(m.Input.View()),
 		),
 	)
@@ -148,11 +139,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.OnlineUsers.Width = (currWidth / 5) - 5
 		m.OnlineUsers.Height = currHeight - 5
 
-		m.Viewport.HighPerformanceRendering = useHighPerformanceRenderer
-
-		if useHighPerformanceRenderer {
-			cmds = append(cmds, viewport.Sync(m.Viewport))
-		}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+q", "ctrl+c":
@@ -194,8 +180,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case string:
-		m.Messages = append(m.Messages, msg)
-		m.Viewport.SetContent(strings.Join(m.Messages, "\n"))
+		m.Messages = fmt.Sprintf("%s\n%s", m.Messages, msg)
+		m.Viewport.SetContent(m.Messages)
 		m.Viewport.GotoBottom()
 		return m, listenForMessages(m)
 
