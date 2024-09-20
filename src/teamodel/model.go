@@ -161,7 +161,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				var kurac message.Message
 				kurac.Author = m.Styles.SenderStyle.Render(m.Username)
 				kurac.Timestamp = m.Styles.SenderStyle.Render(timestamp)
-				kurac.Content = v
+				kurac.Content = v + "\r\n"
 				kurac.To = ""
 
 				byteMessage, err := message.EncodeMessage(kurac)
@@ -180,7 +180,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case string:
-		m.Messages = fmt.Sprintf("%s\n%s", m.Messages, msg)
+		m.Messages = fmt.Sprintf("%s%s", m.Messages, msg)
 		m.Viewport.SetContent(m.Messages)
 		m.Viewport.GotoBottom()
 		return m, listenForMessages(m)
