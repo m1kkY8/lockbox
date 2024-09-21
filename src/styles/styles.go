@@ -10,6 +10,7 @@ import (
 type Styles struct {
 	Border      lipgloss.Style
 	SenderStyle lipgloss.Style
+	OnlineTitle lipgloss.Style
 }
 
 func GenerateRandomANSIColor() string {
@@ -25,8 +26,15 @@ func DefaultStyle(userColor string) *Styles {
 		Bold(true).
 		Foreground(lipgloss.Color(userColor))
 
+	onlineTitle := lipgloss.
+		NewStyle().
+		Bold(true).
+		Italic(true).
+		Foreground(lipgloss.Color("40"))
+
 	return &Styles{
 		Border:      border,
 		SenderStyle: senderStyle,
+		OnlineTitle: onlineTitle,
 	}
 }
