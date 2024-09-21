@@ -19,6 +19,7 @@ type Message struct {
 	Timestamp string `msgpack:"timestamp"`
 }
 
+// Parses Message into string format `timestamp user: message`
 func Format(message Message) string {
 	timestamp := message.Timestamp
 	username := message.Author
@@ -35,6 +36,7 @@ func EncodeMessage(message Message) ([]byte, error) {
 	return encodedMessage, nil
 }
 
+// Unpack []byte into Message
 func DecodeMessage(byteMessage []byte) (Message, error) {
 	var decodedMessage Message
 

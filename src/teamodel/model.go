@@ -33,43 +33,6 @@ type Model struct {
 	Messages        string
 }
 
-func listenForMessages(m Model) tea.Cmd {
-	return func() tea.Msg {
-		return <-m.MessageChannel
-	}
-}
-
-func listenForOnline(m Model) tea.Cmd {
-	return func() tea.Msg {
-		return <-m.OnlineUsersChan
-	}
-}
-
-func (m Model) RecieveMessages() {
-	for {
-		_, byteMessage, err := m.Conn.ReadMessage()
-		if err != nil {
-			return
-		}
-
-		decodedMsg, err := message.DecodeMessage(byteMessage)
-		if err != nil {
-			log.Println("Failed decoding")
-			continue
-		}
-
-		if decodedMsg.Type == message.ServerMessage {
-			m.OnlineUsersChan <- strings.Split(decodedMsg.Content, " ")
-			continue
-		} else {
-			formattedMessage := message.Format(decodedMsg)
-			m.MessageChannel <- formattedMessage
-
-		}
-
-	}
-}
-
 func New(color string, username string, conn *websocket.Conn) *Model {
 	styles := styles.DefaultStyle(color)
 	input := textinput.New()
@@ -98,6 +61,7 @@ func New(color string, username string, conn *websocket.Conn) *Model {
 	}
 }
 
+// Starts the goroutine to recieve messages
 func (m Model) Init() tea.Cmd {
 	go m.RecieveMessages()
 	return tea.Batch(listenForMessages(m), listenForOnline(m))
@@ -127,7 +91,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds []tea.Cmd
 	)
 	switch msg := msg.(type) {
-
+	// resizing the terminal
 	case tea.WindowSizeMsg:
 		currWidth := msg.Width
 		currHeight := msg.Height
@@ -144,7 +108,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+q", "ctrl+c":
 			return m, tea.Quit
 
-			// na enter se salju poruke
+			// Enter to send messages
 		case "enter":
 			v := m.Input.Value()
 			if v == "" {
@@ -156,15 +120,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			m.Input.Reset()
 			if m.Conn != nil {
+				// Create Message object and send it to the server
 				timestamp := time.Now().Format(time.TimeOnly)
 
-				var kurac message.Message
-				kurac.Author = m.Styles.SenderStyle.Render(m.Username)
-				kurac.Timestamp = m.Styles.SenderStyle.Render(timestamp)
-				kurac.Content = v + "\r\n"
-				kurac.To = ""
+				var userMessage message.Message
+				userMessage.Author = m.Styles.SenderStyle.Render(m.Username)
+				userMessage.Timestamp = m.Styles.SenderStyle.Render(timestamp)
+				userMessage.Content = v + "\r\n"
+				userMessage.To = ""
 
-				byteMessage, err := message.EncodeMessage(kurac)
+				byteMessage, err := message.EncodeMessage(userMessage)
 				if err != nil {
 					log.Println("Failed encoding message")
 					break
@@ -179,15 +144,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
+		// Handle displaying user messages
+		// Rewrite to use array since storing all messages in the string is not efficient
 	case string:
 		m.Messages = fmt.Sprintf("%s%s", m.Messages, msg)
 		m.Viewport.SetContent(m.Messages)
 		m.Viewport.GotoBottom()
 		return m, listenForMessages(m)
 
+		// Handling meesage from servr containing online users
 	case []string:
-
 		var lista []string
+		// Parse ever user and get color of that user
+		// message format is color:username
 		for _, name := range msg {
 			tokens := strings.Split(name, ":")
 			lista = append(lista, lipgloss.NewStyle().
@@ -206,9 +175,48 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, listenForOnline(m)
 	}
 
+	// Every other unhandled keystroke or mouse movement is sent to Viewport and Input
 	m.Viewport, cmd = m.Viewport.Update(msg)
 	cmds = append(cmds, cmd)
 	m.Input, cmd = m.Input.Update(msg)
 	cmds = append(cmds, cmd)
 	return m, tea.Batch(cmds...)
+}
+
+// returns a string containg the message
+func listenForMessages(m Model) tea.Cmd {
+	return func() tea.Msg {
+		return <-m.MessageChannel
+	}
+}
+
+// returns a []string of online users
+func listenForOnline(m Model) tea.Cmd {
+	return func() tea.Msg {
+		return <-m.OnlineUsersChan
+	}
+}
+
+func (m Model) RecieveMessages() {
+	for {
+		_, byteMessage, err := m.Conn.ReadMessage()
+		if err != nil {
+			return
+		}
+
+		decodedMsg, err := message.DecodeMessage(byteMessage)
+		if err != nil {
+			log.Println("Failed decoding")
+			continue
+		}
+
+		if decodedMsg.Type == message.ServerMessage {
+			m.OnlineUsersChan <- strings.Split(decodedMsg.Content, " ")
+		} else {
+			formattedMessage := message.Format(decodedMsg)
+			m.MessageChannel <- formattedMessage
+
+		}
+
+	}
 }

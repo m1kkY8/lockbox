@@ -36,6 +36,7 @@ func main() {
 func start(teaModel *teamodel.Model) {
 	p := tea.NewProgram(teaModel,
 		tea.WithAltScreen(),
+		tea.WithMouseCellMotion(),
 	)
 	if _, err := p.Run(); err != nil {
 		log.Println(err)

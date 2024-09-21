@@ -58,8 +58,8 @@ type Model struct {
 
 func (m *Model) setInitialValues() {
 	// m.KeyMap = DefaultKeyMap()
-	// m.MouseWheelEnabled = true
-	// m.MouseWheelDelta = 3
+	m.MouseWheelEnabled = true
+	m.MouseWheelDelta = 3
 	// m.initialized = true
 }
 
