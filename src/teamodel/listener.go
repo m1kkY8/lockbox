@@ -24,8 +24,15 @@ func (m Model) RecieveMessages() {
 		if decodedMsg.Type == message.ServerMessage {
 			m.OnlineUsersChan <- strings.Split(decodedMsg.Content, " ")
 		} else {
+			if decodedMsg.To == m.Username {
+				continue
+			}
 
 			if decodedMsg.To != "" && decodedMsg.To == m.Username {
+				if decodedMsg.Author == m.Username {
+					formattedMessage := message.Format(decodedMsg)
+					m.MessageChannel <- formattedMessage
+				}
 				// This is a whisper message intended for this client
 				formattedMessage := message.FormatWhisper(decodedMsg)
 				m.MessageChannel <- formattedMessage
