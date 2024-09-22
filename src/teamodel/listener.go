@@ -24,7 +24,7 @@ func (m Model) RecieveMessages() {
 		if decodedMsg.Type == message.ServerMessage {
 			m.OnlineUsersChan <- strings.Split(decodedMsg.Content, " ")
 		} else {
-			if decodedMsg.To == m.Username {
+			if decodedMsg.Author == decodedMsg.To {
 				continue
 			}
 
