@@ -1,6 +1,7 @@
 package teamodel
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -84,13 +85,28 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					parts := strings.SplitN(whisper, " ", 2)
 
 					if len(parts) < 2 {
-						log.Println("Invalid whisper format. Use /whisper <user> <message>")
 						break
 					}
 
 					// Set the target user and content for whisper
 					userMessage.To = parts[0]
 					userMessage.Content = parts[1]
+
+					newMessage := fmt.Sprintf("%s (Whisper to %s): %s ", userMessage.Timestamp, userMessage.To, parts[1])
+
+					m.MessageList.Messages = append(m.MessageList.Messages, newMessage)
+					m.MessageList.Count++
+
+					// if there are more messages than limit pop the oldest from array
+					if m.MessageList.Count > limit {
+						m.MessageList.Messages = m.MessageList.Messages[1:]
+						m.MessageList.Count--
+					}
+
+					m.Viewport.SetContent(strings.Join(m.MessageList.Messages, "\n"))
+					m.Viewport.GotoBottom()
+
+					//	m.placeMessage(newMessage)
 				} else {
 					// Normal message
 					userMessage.To = "all"
@@ -126,7 +142,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		m.Viewport.SetContent(strings.Join(m.MessageList.Messages, "\n"))
 		m.Viewport.GotoBottom()
-
 		return m, listenForMessages(m)
 
 		// Handling meesage from servr containing online users
