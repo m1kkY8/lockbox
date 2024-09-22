@@ -27,6 +27,14 @@ func Format(message Message) string {
 	return fmt.Sprintf("%s %s: %s", timestamp, username, content)
 }
 
+func FormatWhisper(message Message) string {
+	timestamp := message.Timestamp
+	username := message.Author
+	content := message.Content
+
+	return fmt.Sprintf("%s (Whisper from %s): %s ", timestamp, username, content)
+}
+
 func EncodeMessage(message Message) ([]byte, error) {
 	encodedMessage, err := msgpack.Marshal(message)
 	if err != nil {

@@ -1,7 +1,6 @@
 package teamodel
 
 import (
-	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -11,6 +10,8 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/m1kkY8/gochat/src/message"
 )
+
+var limit = 100
 
 func (m Model) Init() tea.Cmd {
 	go m.RecieveMessages()
@@ -76,8 +77,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				var userMessage message.Message
 				userMessage.Author = m.Styles.SenderStyle.Render(m.Username)
 				userMessage.Timestamp = m.Styles.SenderStyle.Render(timestamp)
-				userMessage.Content = v + "\r\n"
-				userMessage.To = ""
+
+				// Check if it's a whisper command
+				if strings.HasPrefix(v, "/whisper") {
+					whisper := strings.TrimPrefix(v, "/whisper ")
+					parts := strings.SplitN(whisper, " ", 2)
+
+					if len(parts) < 2 {
+						log.Println("Invalid whisper format. Use /whisper <user> <message>")
+						break
+					}
+
+					// Set the target user and content for whisper
+					userMessage.To = parts[0]
+					userMessage.Content = parts[1]
+				} else {
+					// Normal message
+					userMessage.To = "all"
+					userMessage.Content = v
+				}
 
 				byteMessage, err := message.EncodeMessage(userMessage)
 				if err != nil {
@@ -95,28 +113,34 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// Handle displaying user messages
-		// Rewrite to use array since storing all messages in the string is not efficient
 	case string:
-		m.Messages = fmt.Sprintf("%s%s", m.Messages, msg)
-		m.Viewport.SetContent(m.Messages)
+		// add new message and increase count
+		m.MessageList.Messages = append(m.MessageList.Messages, msg)
+		m.MessageList.Count++
+
+		// if there are more messages than limit pop the oldest from array
+		if m.MessageList.Count > limit {
+			m.MessageList.Messages = m.MessageList.Messages[1:]
+			m.MessageList.Count--
+		}
+
+		m.Viewport.SetContent(strings.Join(m.MessageList.Messages, "\n"))
 		m.Viewport.GotoBottom()
+
 		return m, listenForMessages(m)
 
 		// Handling meesage from servr containing online users
 	case []string:
-		var lista []string
 		// Parse ever user and get color of that user
 		// message format is color:username
-		for _, name := range msg {
+		for i, name := range msg {
 			tokens := strings.Split(name, ":")
-			lista = append(lista, lipgloss.NewStyle().
-				Foreground(lipgloss.Color(tokens[0])).
-				Render(tokens[1]))
+			msg[i] = lipgloss.NewStyle().Foreground(lipgloss.Color(tokens[0])).Render(tokens[1])
 		}
 
 		title := m.Styles.OnlineTitle.Render("Online:") + "\n"
 
-		m.OnlineUsers.SetContent(title + strings.Join(lista, "\n"))
+		m.OnlineUsers.SetContent(title + strings.Join(msg, "\n"))
 		return m, listenForOnline(m)
 	}
 

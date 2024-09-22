@@ -8,8 +8,6 @@ import (
 	"github.com/m1kkY8/gochat/src/styles"
 )
 
-const useHighPerformanceRenderer = false
-
 type Model struct {
 	Input           textinput.Model
 	Viewport        comps.Model
@@ -22,7 +20,12 @@ type Model struct {
 	UserColor       string
 	MessageChannel  chan string
 	OnlineUsersChan chan []string
-	Messages        string
+	MessageList     *MessageList
+}
+
+type MessageList struct {
+	Messages []string
+	Count    int
 }
 
 func New(color string, username string, conn *websocket.Conn) *Model {
@@ -37,7 +40,7 @@ func New(color string, username string, conn *websocket.Conn) *Model {
 	vp.SetContent("Welcome, start messaging")
 
 	onlineList := comps.New(20, 20)
-	onlineList.SetContent("online")
+	onlineList.SetContent("Online")
 
 	return &Model{
 		Conn:            conn,
@@ -47,10 +50,8 @@ func New(color string, username string, conn *websocket.Conn) *Model {
 		Styles:          styles,
 		Viewport:        vp,
 		OnlineUsers:     onlineList,
-		Messages:        "",
+		MessageList:     &MessageList{},
 		MessageChannel:  make(chan string),
 		OnlineUsersChan: make(chan []string),
 	}
 }
-
-// Starts the goroutine to recieve messages
