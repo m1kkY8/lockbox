@@ -5,7 +5,7 @@ build:
 	@go build -o ${BINARY_NAME} ${GO_MAIN}
 
 run:
-	@gochat -u Mile -c 159 -ip prod -p 1337
+	@gochat -ip sjdoo.zapto.org
 
 clean:
 	@rm -rf ./bin
