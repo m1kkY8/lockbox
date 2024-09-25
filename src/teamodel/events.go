@@ -60,6 +60,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+q", "ctrl+c":
 			return m, tea.Quit
 
+		case "ctrl+l":
+			m.MessageList.Messages = nil
+			m.MessageList.Count = 0
+			m.Viewport.SetContent(strings.Join(m.MessageList.Messages, "\n"))
+			m.Viewport.GotoBottom()
 			// Enter to send messages
 		case "enter":
 			v := m.Input.Value()
@@ -145,8 +150,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, listenForMessages(m)
 
 		// Handling meesage from servr containing online users
-	case []string:
 		// Parse ever user and get color of that user
+	case []string:
 		// message format is color:username
 		for i, name := range msg {
 			tokens := strings.Split(name, ":")

@@ -15,7 +15,7 @@ type Config struct {
 	Host     string
 }
 
-func LoadConfig() Config {
+func LoadConfig() *Config {
 	u := flag.String("u", "anon", "Username")
 	c := flag.String("c", "", "Color for your username, use -c=help for all colors")
 	h := flag.String("ip", "", "IP address of server")
@@ -23,14 +23,14 @@ func LoadConfig() Config {
 
 	if *c == "help" {
 		util.Colors()
-		return Config{}
+		return &Config{}
 	}
 
 	if *c == "" {
 		*c = styles.GenerateRandomANSIColor()
 	}
 
-	return Config{
+	return &Config{
 		Username: *u,
 		Color:    *c,
 		Host:     *h,

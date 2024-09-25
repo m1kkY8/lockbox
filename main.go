@@ -12,12 +12,12 @@ import (
 func main() {
 	conf := config.LoadConfig()
 
-	if err := config.ValidateConfig(conf); err != nil {
+	if err := config.ValidateConfig(*conf); err != nil {
 		log.Println(err)
 		return
 	}
 
-	url := config.GetUrl(conf)
+	url := config.GetUrl(*conf)
 
 	conn, err := connection.ConnectToServer(url.String())
 	if err != nil {
@@ -25,7 +25,7 @@ func main() {
 		return
 	}
 
-	if err := connection.SendHandshake(conn, conf); err != nil {
+	if err := connection.SendHandshake(conn, *conf); err != nil {
 		log.Println("error sending handshake")
 	}
 
