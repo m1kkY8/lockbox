@@ -20,7 +20,7 @@ func GenerateRandomANSIColor() string {
 func DefaultStyle(userColor string) *Styles {
 	border := lipgloss.NewStyle().
 		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("63"))
+		BorderForeground(lipgloss.Color("93"))
 
 	senderStyle := lipgloss.NewStyle().
 		Bold(true).
