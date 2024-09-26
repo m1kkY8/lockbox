@@ -15,4 +15,5 @@ func Colors() {
 			fmt.Println()
 		}
 	}
+	fmt.Println()
 }

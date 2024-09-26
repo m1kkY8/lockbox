@@ -21,23 +21,25 @@ func LoadConfig() *Config {
 	h := flag.String("ip", "", "IP address of server")
 	flag.Parse()
 
-	if *c == "help" {
-		util.Colors()
-		return &Config{}
-	}
+	var config Config
 
-	if *c == "" {
+	config.Color = *c
+	config.Username = *u
+	config.Host = *h
+
+	if config.Color == "" {
 		*c = styles.GenerateRandomANSIColor()
 	}
 
-	return &Config{
-		Username: *u,
-		Color:    *c,
-		Host:     *h,
-	}
+	return &config
 }
 
 func ValidateConfig(c Config) error {
+	if c.Color == "help" {
+		util.Colors()
+		return fmt.Errorf("Color list")
+	}
+
 	if c.Host == "" {
 		return fmt.Errorf("please provide IP and port of server and try again, use -h for help")
 	}
