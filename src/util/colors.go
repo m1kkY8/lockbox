@@ -11,7 +11,7 @@ func Colors() {
 		fmt.Printf("\033[48;5;%dm%4d\033[0m ", i, i)
 
 		// Print a newline after every 6 colors for better readability
-		if (i+1)%6 == 0 {
+		if (i+1)%8 == 0 {
 			fmt.Println()
 		}
 	}
