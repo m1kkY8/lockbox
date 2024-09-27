@@ -81,7 +81,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				timestamp := time.Now().Format(time.TimeOnly)
 
 				var userMessage message.Message
-				userMessage.Author = m.Styles.SenderStyle.Render(m.Username)
+				// userMessage.Author = m.Styles.SenderStyle.Render(m.Username)
+				userMessage.Author = m.Username
 				userMessage.Timestamp = m.Styles.SenderStyle.Render(timestamp)
 
 				// Check if it's a whisper command

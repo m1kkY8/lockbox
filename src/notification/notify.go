@@ -2,25 +2,20 @@ package notification
 
 import (
 	"log"
-	"regexp"
-	"strings"
 
 	"github.com/gen2brain/beeep"
+	"github.com/m1kkY8/gochat/src/message"
 )
 
-func Notify(msg string, username string) {
-	reg := regexp.MustCompile(`\x1b\[[0-9;]*m`)
-	cleanedMessage := reg.ReplaceAllString(msg, "")
-	partMsg := strings.SplitN(cleanedMessage, ": ", 2)
-	getPartUser := strings.Split(partMsg[0], " ")
-	fromUser := getPartUser[1]
+func Notify(msg message.Message, author string) {
+	from := msg.Author
+	content := msg.Content
 
-	if fromUser == username {
+	if from == author {
 		return
 	}
 
-	formatMsg := partMsg[1]
-	err := beeep.Notify(fromUser, formatMsg, "assets/amogus.png")
+	err := beeep.Notify(from, content, "assets/amogus.png")
 	if err != nil {
 		log.Println(err)
 		panic(err)

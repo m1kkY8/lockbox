@@ -6,6 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/m1kkY8/gochat/src/message"
+	"github.com/m1kkY8/gochat/src/notification"
 )
 
 func (m Model) RecieveMessages() {
@@ -39,6 +40,7 @@ func (m Model) RecieveMessages() {
 			if decodedMsg.To == "" || decodedMsg.To == "all" {
 				formattedMessage := message.Format(decodedMsg)
 				m.MessageChannel <- formattedMessage
+				notification.Notify(decodedMsg, m.Username)
 			}
 
 		}
