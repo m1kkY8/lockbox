@@ -44,12 +44,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case string:
 		// Handle displaying user messages
-		m.receiver(msg)
+		m.displayMessages(msg)
 		return m, m.listenForMessages()
 
 	case []string:
 		// Handling meesage from servr containing online users
-		m.onlineReceiver(msg)
+		m.displayOnlineUsers(msg)
 		return m, m.listenForOnlineUsers()
 	}
 
@@ -58,5 +58,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds = append(cmds, cmd)
 	m.Input, cmd = m.Input.Update(msg)
 	cmds = append(cmds, cmd)
+
 	return m, tea.Batch(cmds...)
 }

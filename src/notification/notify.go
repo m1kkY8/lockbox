@@ -15,9 +15,9 @@ func Notify(msg message.Message, author string) {
 		return
 	}
 
-	err := beeep.Notify(from, content, "assets/amogus.png")
+	err := beeep.Notify(from, content, "src/notification/assets/amogus.png")
 	if err != nil {
 		log.Println(err)
-		panic(err)
+		return
 	}
 }

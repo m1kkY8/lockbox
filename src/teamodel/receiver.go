@@ -15,7 +15,7 @@ func (m *Model) listenForMessages() tea.Cmd {
 }
 
 // Handles messages displayed in model
-func (m *Model) receiver(msg string) {
+func (m *Model) displayMessages(msg string) {
 	m.MessageList.Messages = append(m.MessageList.Messages, msg)
 	m.MessageList.Count++
 
@@ -37,7 +37,7 @@ func (m *Model) listenForOnlineUsers() tea.Cmd {
 }
 
 // Handles array of online users displayed in model
-func (m *Model) onlineReceiver(msg []string) {
+func (m *Model) displayOnlineUsers(msg []string) {
 	for i, name := range msg {
 		tokens := strings.Split(name, ":")
 		msg[i] = lipgloss.NewStyle().Foreground(lipgloss.Color(tokens[0])).Render(tokens[1])

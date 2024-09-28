@@ -62,14 +62,6 @@ func New(conf config.Config, conn *websocket.Conn) *Model {
 	}
 }
 
-func (m *Model) Init() tea.Cmd {
-	go m.RecieveMessages()
-	return tea.Batch(
-		m.listenForMessages(),
-		m.listenForOnlineUsers(),
-	)
-}
-
 func (m *Model) View() string {
 	return lipgloss.Place(
 		m.Width,
@@ -85,5 +77,13 @@ func (m *Model) View() string {
 			),
 			m.Styles.Border.Render(m.Input.View()),
 		),
+	)
+}
+
+func (m *Model) Init() tea.Cmd {
+	go m.RecieveMessages()
+	return tea.Batch(
+		m.listenForMessages(),
+		m.listenForOnlineUsers(),
 	)
 }
