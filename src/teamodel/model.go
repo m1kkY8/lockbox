@@ -2,6 +2,8 @@ package teamodel
 
 import (
 	"github.com/charmbracelet/bubbles/textinput"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/gorilla/websocket"
 
 	"github.com/m1kkY8/gochat/src/comps"
@@ -27,6 +29,8 @@ type MessageList struct {
 	Messages []string
 	Count    int
 }
+
+var messageLimit = 100
 
 func New(color string, username string, conn *websocket.Conn) *Model {
 	styles := styles.DefaultStyle(color)
@@ -54,4 +58,30 @@ func New(color string, username string, conn *websocket.Conn) *Model {
 		MessageChannel:  make(chan string),
 		OnlineUsersChan: make(chan []string),
 	}
+}
+
+func (m *Model) Init() tea.Cmd {
+	go m.RecieveMessages()
+	return tea.Batch(
+		m.listenForMessages(),
+		m.listenForOnlineUsers(),
+	)
+}
+
+func (m *Model) View() string {
+	return lipgloss.Place(
+		m.Width,
+		m.Height,
+		lipgloss.Center,
+		lipgloss.Center,
+		lipgloss.JoinVertical(
+			lipgloss.Center,
+			lipgloss.JoinHorizontal(
+				lipgloss.Center,
+				m.Styles.Border.Render(m.Viewport.View()),
+				m.Styles.Border.Render(m.OnlineUsers.View()),
+			),
+			m.Styles.Border.Render(m.Input.View()),
+		),
+	)
 }

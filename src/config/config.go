@@ -17,8 +17,8 @@ type Config struct {
 
 func LoadConfig() *Config {
 	u := flag.String("u", "anon", "Username")
-	c := flag.String("c", "", "Color for your username, use -c=help for all colors")
-	h := flag.String("ip", "", "IP address of server")
+	c := flag.String("c", "", "Color for your username, use -c help for all colors")
+	h := flag.String("h", "", "Address of server")
 	flag.Parse()
 
 	var config Config
@@ -29,6 +29,7 @@ func LoadConfig() *Config {
 
 	if config.Color == "" {
 		*c = styles.GenerateRandomANSIColor()
+		config.Color = *c
 	}
 
 	return &config
