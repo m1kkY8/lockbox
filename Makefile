@@ -2,16 +2,16 @@ BINARY_NAME=./bin/client
 GO_MAIN=./main.go
 
 build:
-	@go build -o ${BINARY_NAME} ${GO_MAIN}
+	@go build 
 
 run:
 	@gochat -ip sjdoo.zapto.org
 
 clean:
-	@rm -rf ./bin
+	@rm gochat
 
 install:
 	@go build
 	@go install
 
-.PHONY: build run install
+.PHONY: build run install clean
