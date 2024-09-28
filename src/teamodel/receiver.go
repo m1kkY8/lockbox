@@ -48,8 +48,8 @@ func (m *Model) onlineReceiver(msg []string) {
 	m.OnlineUsers.SetContent(title + strings.Join(msg, "\n"))
 }
 
+// Clears all messages
 func (m *Model) clear() {
-	// Clears all messages
 	m.MessageList.Messages = nil
 	m.MessageList.Count = 0
 	m.Viewport.SetContent(strings.Join(m.MessageList.Messages, "\n"))

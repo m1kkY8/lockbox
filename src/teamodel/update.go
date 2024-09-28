@@ -1,10 +1,7 @@
 package teamodel
 
 import (
-	"time"
-
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/m1kkY8/gochat/src/message"
 )
 
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -36,20 +33,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			m.Input.Reset()
 			if m.Conn != nil {
-				// Create Message object and send it to the server
-				timestamp := time.Now().Format(time.TimeOnly)
-
-				var userMessage message.Message
-				userMessage.Author = m.Username
-				userMessage.Timestamp = m.Styles.SenderStyle.Render(timestamp)
-				userMessage.To = "all"
-				userMessage.Content = v
-
+				userMessage := m.createMessage(v)
 				err := m.sendMessage(userMessage)
 				if err != nil {
 					break
 				}
-
 			}
 			return m, nil
 		}
