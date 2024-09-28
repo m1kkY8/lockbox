@@ -23,7 +23,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.clear()
 		case "enter":
 			// Enter to send messages
-			v := m.Input.Value()
+			v := m.input.Value()
 			if v == "" {
 				return m, nil
 			}
@@ -31,8 +31,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, tea.Quit
 			}
 
-			m.Input.Reset()
-			if m.Conn != nil {
+			m.input.Reset()
+			if m.conn != nil {
 				userMessage := m.createMessage(v)
 				err := m.sendMessage(userMessage)
 				if err != nil {
@@ -54,9 +54,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	// Every other unhandled keystroke or mouse movement is sent to Viewport and Input
-	m.Viewport, cmd = m.Viewport.Update(msg)
+	m.viewport, cmd = m.viewport.Update(msg)
 	cmds = append(cmds, cmd)
-	m.Input, cmd = m.Input.Update(msg)
+	m.input, cmd = m.input.Update(msg)
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)

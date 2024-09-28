@@ -10,29 +10,29 @@ import (
 // returns a string containg the message
 func (m *Model) listenForMessages() tea.Cmd {
 	return func() tea.Msg {
-		return <-m.MessageChannel
+		return <-m.messageChannel
 	}
 }
 
 // Handles messages displayed in model
 func (m *Model) displayMessages(msg string) {
-	m.MessageList.Messages = append(m.MessageList.Messages, msg)
-	m.MessageList.Count++
+	m.messageList.messages = append(m.messageList.messages, msg)
+	m.messageList.count++
 
 	// if there are more messages than limit pop the oldest from array
-	if m.MessageList.Count > messageLimit {
-		m.MessageList.Messages = m.MessageList.Messages[1:]
-		m.MessageList.Count--
+	if m.messageList.count > messageLimit {
+		m.messageList.messages = m.messageList.messages[1:]
+		m.messageList.count--
 	}
 
-	m.Viewport.SetContent(strings.Join(m.MessageList.Messages, "\n"))
-	m.Viewport.GotoBottom()
+	m.viewport.SetContent(strings.Join(m.messageList.messages, "\n"))
+	m.viewport.GotoBottom()
 }
 
 // returns a []string of online users
 func (m *Model) listenForOnlineUsers() tea.Cmd {
 	return func() tea.Msg {
-		return <-m.OnlineUsersChan
+		return <-m.onlineUsersChan
 	}
 }
 
@@ -43,15 +43,15 @@ func (m *Model) displayOnlineUsers(msg []string) {
 		msg[i] = lipgloss.NewStyle().Foreground(lipgloss.Color(tokens[0])).Render(tokens[1])
 	}
 
-	title := m.Styles.OnlineTitle.Render("Online:") + "\n"
+	title := m.styles.OnlineTitle.Render("Online:") + "\n"
 
-	m.OnlineUsers.SetContent(title + strings.Join(msg, "\n"))
+	m.onlineUsers.SetContent(title + strings.Join(msg, "\n"))
 }
 
 // Clears all messages
 func (m *Model) clear() {
-	m.MessageList.Messages = nil
-	m.MessageList.Count = 0
-	m.Viewport.SetContent(strings.Join(m.MessageList.Messages, "\n"))
-	m.Viewport.GotoBottom()
+	m.messageList.messages = nil
+	m.messageList.count = 0
+	m.viewport.SetContent(strings.Join(m.messageList.messages, "\n"))
+	m.viewport.GotoBottom()
 }

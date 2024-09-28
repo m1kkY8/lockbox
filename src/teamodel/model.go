@@ -12,23 +12,23 @@ import (
 )
 
 type Model struct {
-	Input           textinput.Model
-	Viewport        comps.Model
-	OnlineUsers     comps.Model
-	Styles          *styles.Styles
-	Width           int
-	Height          int
-	Conn            *websocket.Conn
-	Username        string
-	UserColor       string
-	MessageChannel  chan string
-	OnlineUsersChan chan []string
-	MessageList     *MessageList
+	input           textinput.Model
+	viewport        comps.Model
+	onlineUsers     comps.Model
+	styles          *styles.Styles
+	width           int
+	height          int
+	conn            *websocket.Conn
+	username        string
+	userColor       string
+	messageChannel  chan string
+	onlineUsersChan chan []string
+	messageList     *MessageList
 }
 
 type MessageList struct {
-	Messages []string
-	Count    int
+	messages []string
+	count    int
 }
 
 var messageLimit = 100
@@ -49,39 +49,39 @@ func New(conf config.Config, conn *websocket.Conn) *Model {
 	onlineList.SetContent("Online")
 
 	return &Model{
-		Conn:            conn,
-		UserColor:       conf.Color,
-		Username:        conf.Username,
-		Input:           input,
-		Styles:          styles,
-		Viewport:        vp,
-		OnlineUsers:     onlineList,
-		MessageList:     &MessageList{},
-		MessageChannel:  make(chan string),
-		OnlineUsersChan: make(chan []string),
+		conn:            conn,
+		userColor:       conf.Color,
+		username:        conf.Username,
+		input:           input,
+		styles:          styles,
+		viewport:        vp,
+		onlineUsers:     onlineList,
+		messageList:     &MessageList{},
+		messageChannel:  make(chan string),
+		onlineUsersChan: make(chan []string),
 	}
 }
 
 func (m *Model) View() string {
 	return lipgloss.Place(
-		m.Width,
-		m.Height,
+		m.width,
+		m.height,
 		lipgloss.Center,
 		lipgloss.Center,
 		lipgloss.JoinVertical(
 			lipgloss.Center,
 			lipgloss.JoinHorizontal(
 				lipgloss.Center,
-				m.Styles.Border.Render(m.Viewport.View()),
-				m.Styles.Border.Render(m.OnlineUsers.View()),
+				m.styles.Border.Render(m.viewport.View()),
+				m.styles.Border.Render(m.onlineUsers.View()),
 			),
-			m.Styles.Border.Render(m.Input.View()),
+			m.styles.Border.Render(m.input.View()),
 		),
 	)
 }
 
 func (m *Model) Init() tea.Cmd {
-	go m.RecieveMessages()
+	go m.recieveMessages()
 	return tea.Batch(
 		m.listenForMessages(),
 		m.listenForOnlineUsers(),

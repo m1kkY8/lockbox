@@ -14,7 +14,7 @@ func (m *Model) sendMessage(userMessage message.Message) error {
 		return err
 	}
 
-	err = m.Conn.WriteMessage(websocket.BinaryMessage, byteMessage)
+	err = m.conn.WriteMessage(websocket.BinaryMessage, byteMessage)
 	if err != nil {
 		log.Printf("Error writing message: %v", err)
 		return err
