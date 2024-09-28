@@ -12,6 +12,7 @@ func Notify(msg message.Message, author string) {
 	content := msg.Content
 
 	if from == author {
+		log.Println("amogs")
 		return
 	}
 
