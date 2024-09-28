@@ -27,9 +27,10 @@ func main() {
 
 	if err := connection.SendHandshake(conn, *conf); err != nil {
 		log.Println("error sending handshake")
+		return
 	}
 
-	teaModel := teamodel.New(conf.Color, conf.Username, conn)
+	teaModel := teamodel.New(*conf, conn)
 	start(teaModel)
 }
 

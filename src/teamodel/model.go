@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/websocket"
 
 	"github.com/m1kkY8/gochat/src/comps"
+	"github.com/m1kkY8/gochat/src/config"
 	"github.com/m1kkY8/gochat/src/styles"
 )
 
@@ -32,8 +33,9 @@ type MessageList struct {
 
 var messageLimit = 100
 
-func New(color string, username string, conn *websocket.Conn) *Model {
-	styles := styles.DefaultStyle(color)
+func New(conf config.Config, conn *websocket.Conn) *Model {
+	styles := styles.DefaultStyle(conf.Color)
+
 	input := textinput.New()
 	input.Prompt = ""
 	input.Placeholder = "Message: "
@@ -48,8 +50,8 @@ func New(color string, username string, conn *websocket.Conn) *Model {
 
 	return &Model{
 		Conn:            conn,
-		UserColor:       color,
-		Username:        username,
+		UserColor:       conf.Color,
+		Username:        conf.Username,
 		Input:           input,
 		Styles:          styles,
 		Viewport:        vp,
