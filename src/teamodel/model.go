@@ -24,6 +24,7 @@ type Model struct {
 	messageChannel  chan string
 	onlineUsersChan chan []string
 	messageList     *MessageList
+	currentRoom     string
 }
 
 type MessageList struct {
@@ -59,6 +60,7 @@ func New(conf config.Config, conn *websocket.Conn) *Model {
 		messageList:     &MessageList{},
 		messageChannel:  make(chan string),
 		onlineUsersChan: make(chan []string),
+		currentRoom:     "all",
 	}
 }
 

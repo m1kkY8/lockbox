@@ -23,17 +23,17 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.clear()
 		case "enter":
 			// Enter to send messages
-			v := m.input.Value()
-			if v == "" {
+			content := m.input.Value()
+			if content == "" {
 				return m, nil
 			}
-			if v == ":q" {
+			if content == ":q" {
 				return m, tea.Quit
 			}
 
 			m.input.Reset()
 			if m.conn != nil {
-				userMessage := m.createMessage(v)
+				userMessage := m.createMessage(content)
 				err := m.sendMessage(userMessage)
 				if err != nil {
 					break
