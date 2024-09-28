@@ -4,12 +4,11 @@ import (
 	"log"
 	"strings"
 
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/m1kkY8/gochat/src/message"
 	"github.com/m1kkY8/gochat/src/notification"
 )
 
-func (m Model) RecieveMessages() {
+func (m *Model) RecieveMessages() {
 	for {
 		_, byteMessage, err := m.Conn.ReadMessage()
 		if err != nil {
@@ -42,22 +41,6 @@ func (m Model) RecieveMessages() {
 				m.MessageChannel <- formattedMessage
 				notification.Notify(decodedMsg, m.Username)
 			}
-
 		}
-
-	}
-}
-
-// returns a string containg the message
-func listenForMessages(m Model) tea.Cmd {
-	return func() tea.Msg {
-		return <-m.MessageChannel
-	}
-}
-
-// returns a []string of online users
-func listenForOnline(m Model) tea.Cmd {
-	return func() tea.Msg {
-		return <-m.OnlineUsersChan
 	}
 }
