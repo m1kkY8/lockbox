@@ -16,7 +16,6 @@ func main() {
 		log.Println(err)
 		return
 	}
-	log.Println("amogus")
 
 	url := config.GetUrl(*conf)
 
