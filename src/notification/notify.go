@@ -1,6 +1,7 @@
 package notification
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gen2brain/beeep"
@@ -9,13 +10,14 @@ import (
 
 func Notify(msg message.Message, author string) {
 	from := msg.Author
+	at := msg.Room
 	content := msg.Content
 
 	if from == author {
 		return
 	}
 
-	err := beeep.Notify(from, content, "src/notification/assets/amogus.png")
+	err := beeep.Notify(fmt.Sprintf("%s at %s", from, at), content, "src/notification/assets/amogus.png")
 	if err != nil {
 		log.Println(err)
 		return

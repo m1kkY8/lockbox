@@ -10,12 +10,14 @@ import (
 func (m *Model) joinRoom(room string) {
 	// Update the client's current room locally
 	m.currentRoom = room
-	m.input.Placeholder = "Message " + "[" + m.currentRoom + "] :"
+	m.input.Placeholder = "Message " + "[" + m.currentRoom + "]:"
+	m.clear()
+
 	var joinMessage message.Message
 
+	joinMessage.Type = message.CommandMessage
 	joinMessage.Author = m.username
 	joinMessage.Content = fmt.Sprintf("/join %s", m.currentRoom)
-	joinMessage.Type = message.CommandMessage
 
 	bytes, err := message.EncodeMessage(joinMessage)
 	if err != nil {

@@ -29,23 +29,32 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if content == "" {
 				return m, nil
 			}
-			if content == ":q" {
+			if content == "/exit" {
 				return m, tea.Quit
 			}
 
 			// Get join room command
 			if strings.HasPrefix(content, "/") {
 				m.commandHandler(content)
+				m.input.Reset()
+				break
 			}
 
 			m.input.Reset()
-			if m.conn != nil {
-				userMessage := m.createMessage(content)
-				err := m.sendMessage(userMessage)
-				if err != nil {
-					break
-				}
+			if m.conn == nil {
+				return m, nil
 			}
+			// Dont send message if user is not in any room
+			if m.currentRoom == "" {
+				return m, nil
+			}
+
+			userMessage := m.createMessage(content)
+			err := m.sendMessage(userMessage)
+			if err != nil {
+				break
+			}
+
 			return m, nil
 		}
 

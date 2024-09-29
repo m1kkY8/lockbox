@@ -39,7 +39,7 @@ func New(conf config.Config, conn *websocket.Conn) *Model {
 
 	input := textinput.New()
 	input.Prompt = ""
-	input.Placeholder = "Message: "
+	input.Placeholder = "Join any room to start typing"
 	input.Width = 50
 	input.Focus()
 

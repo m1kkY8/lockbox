@@ -13,9 +13,9 @@ func (m *Model) createMessage(content string) message.Message {
 	userMessage.Type = message.ChatMessage
 	userMessage.Author = m.username
 	userMessage.Timestamp = timestamp
-	userMessage.To = m.currentRoom
 	userMessage.Content = content
 	userMessage.Color = m.userColor
+	userMessage.Room = m.currentRoom
 
 	return userMessage
 }
