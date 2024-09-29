@@ -15,6 +15,20 @@ type Config struct {
 	Host     string
 }
 
+func GetUrl(c Config) url.URL {
+	scheme := "wss"
+	host := c.Host
+	path := "/ws"
+
+	// Construct URL
+	u := url.URL{
+		Scheme: scheme,
+		Host:   host,
+		Path:   path,
+	}
+	return u
+}
+
 func LoadConfig() *Config {
 	u := flag.String("u", "anon", "Username")
 	c := flag.String("c", "", "Color for your username, use -c help for all colors")
@@ -45,18 +59,4 @@ func ValidateConfig(c Config) error {
 		return fmt.Errorf("please provide IP and port of server and try again, use -h for help")
 	}
 	return nil
-}
-
-func GetUrl(c Config) url.URL {
-	scheme := "wss"
-	host := c.Host
-	path := "/ws"
-
-	// Construct URL
-	u := url.URL{
-		Scheme: scheme,
-		Host:   host,
-		Path:   path,
-	}
-	return u
 }
