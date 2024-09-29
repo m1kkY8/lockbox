@@ -21,26 +21,20 @@ func (m *Model) recieveMessages() {
 			continue
 		}
 
-		if decodedMsg.Type == message.ServerMessage {
+		switch decodedMsg.Type {
+		case message.ServerMessage:
 			m.onlineUsersChan <- strings.Split(decodedMsg.Content, " ")
-		} else {
-			if decodedMsg.Author == decodedMsg.To {
-				continue
-			}
 
-			if decodedMsg.To != "" && decodedMsg.To == m.username {
-				// This is a whisper message intended for this client
-				formattedMessage := message.FormatWhisper(decodedMsg)
-				m.messageChannel <- formattedMessage
-				continue
-			}
+		case message.ChatMessage:
+			formattedMessage := message.Format(decodedMsg)
+			m.messageChannel <- formattedMessage
 
-			// Handle Regular Message (this includes whispers sent to other users)
-			if decodedMsg.To == "" || decodedMsg.To == "all" {
-				formattedMessage := message.Format(decodedMsg)
-				m.messageChannel <- formattedMessage
-				notification.Notify(decodedMsg, m.username)
-			}
+			notification.Notify(decodedMsg, m.username)
+		case message.CommandMessage:
+			continue
+
+		default:
+			continue
 		}
 	}
 }

@@ -60,7 +60,7 @@ func New(conf config.Config, conn *websocket.Conn) *Model {
 		messageList:     &MessageList{},
 		messageChannel:  make(chan string),
 		onlineUsersChan: make(chan []string),
-		currentRoom:     "all",
+		currentRoom:     "",
 	}
 }
 

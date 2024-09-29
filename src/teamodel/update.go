@@ -1,6 +1,8 @@
 package teamodel
 
 import (
+	"strings"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -29,6 +31,11 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			if content == ":q" {
 				return m, tea.Quit
+			}
+
+			// Get join room command
+			if strings.HasPrefix(content, "/") {
+				m.commandHandler(content)
 			}
 
 			m.input.Reset()
