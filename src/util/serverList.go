@@ -2,11 +2,11 @@ package util
 
 import "os"
 
-// Create a file in HOME/gochat/config.yaml where serverlist is stored
+// Create a file in HOME/lockbox/config.yaml where serverlist is stored
 
 func CreateServerList() {
-	os.MkdirAll(os.Getenv("HOME")+"/.config/gochat", 0755)
-	os.Create(os.Getenv("HOME") + "/.config/gochat/serverlist.yaml")
+	os.MkdirAll(os.Getenv("HOME")+"/.config/lockbox", 0755)
+	os.Create(os.Getenv("HOME") + "/.config/lockbox/serverlist.yaml")
 
 	return
 }
@@ -14,7 +14,7 @@ func CreateServerList() {
 // Check if the serverlist exists
 
 func ServerListExists() bool {
-	_, err := os.Stat(os.Getenv("HOME") + "/.config/gochat/serverlist.yaml")
+	_, err := os.Stat(os.Getenv("HOME") + "/.config/lockbox/serverlist.yaml")
 	if os.IsNotExist(err) {
 		return false
 	}
@@ -25,7 +25,7 @@ func ServerListExists() bool {
 // Check if the serverlist is empty
 
 func ServerListEmpty() bool {
-	file, err := os.Open(os.Getenv("HOME") + "/.config/gochat/serverlist.yaml")
+	file, err := os.Open(os.Getenv("HOME") + "/.config/lockbox/serverlist.yaml")
 	if err != nil {
 		return true
 	}
@@ -38,7 +38,7 @@ func ServerListEmpty() bool {
 // Store the server user wants to connect to in the serverlist
 
 func StoreServer(server string) {
-	file, err := os.OpenFile(os.Getenv("HOME")+"/.config/gochat/serverlist.yaml", os.O_APPEND|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(os.Getenv("HOME")+"/.config/lockbox/serverlist.yaml", os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return
 	}
@@ -52,7 +52,7 @@ func StoreServer(server string) {
 // Check if the server user wants to connect to is already in the ServerList
 
 func ServerExists(server string) bool {
-	file, err := os.Open(os.Getenv("HOME") + "/.config/gochat/serverlist.yaml")
+	file, err := os.Open(os.Getenv("HOME") + "/.config/lockbox/serverlist.yaml")
 	if err != nil {
 		return false
 	}

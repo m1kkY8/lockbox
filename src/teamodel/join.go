@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gorilla/websocket"
-	"github.com/m1kkY8/gochat/src/message"
+	"github.com/m1kkY8/lockbox/src/message"
 )
 
 func (m *Model) joinRoom(room string) {

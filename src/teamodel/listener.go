@@ -4,10 +4,10 @@ import (
 	"log"
 	"strings"
 
-	// "github.com/m1kkY8/gochat/src/encryption"
-	"github.com/m1kkY8/gochat/src/encryption"
-	"github.com/m1kkY8/gochat/src/message"
-	"github.com/m1kkY8/gochat/src/notification"
+	// "github.com/m1kkY8/lockbox/src/encryption"
+	"github.com/m1kkY8/lockbox/src/encryption"
+	"github.com/m1kkY8/lockbox/src/message"
+	"github.com/m1kkY8/lockbox/src/notification"
 	"github.com/vmihailenco/msgpack/v5"
 )
 

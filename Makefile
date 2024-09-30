@@ -7,16 +7,16 @@ build:
 run:
 	@go build
 	@go install
-	@gochat -h sjdoo.zapto.org
+	@lockbox -h sjdoo.zapto.org
 
 
 dev:
 	@go build
 	@go install
-	@gochat -h "localhost:1337" -u "test"
+	@lockbox -h "localhost:1337" -u "test"
 
 clean:
-	@rm gochat
+	@rm lockbox
 
 install:
 	@go build

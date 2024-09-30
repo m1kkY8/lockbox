@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/m1kkY8/gochat/src/styles"
-	"github.com/m1kkY8/gochat/src/util"
+	"github.com/m1kkY8/lockbox/src/styles"
+	"github.com/m1kkY8/lockbox/src/util"
 )
 
 type Config struct {

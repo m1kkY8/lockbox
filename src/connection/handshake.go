@@ -4,7 +4,7 @@ import (
 	"crypto/rsa"
 
 	"github.com/gorilla/websocket"
-	"github.com/m1kkY8/gochat/src/config"
+	"github.com/m1kkY8/lockbox/src/config"
 	"github.com/vmihailenco/msgpack/v5"
 )
 

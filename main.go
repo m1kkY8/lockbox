@@ -4,10 +4,10 @@ import (
 	"log"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/m1kkY8/gochat/src/config"
-	"github.com/m1kkY8/gochat/src/connection"
-	"github.com/m1kkY8/gochat/src/encryption"
-	"github.com/m1kkY8/gochat/src/teamodel"
+	"github.com/m1kkY8/lockbox/src/config"
+	"github.com/m1kkY8/lockbox/src/connection"
+	"github.com/m1kkY8/lockbox/src/encryption"
+	"github.com/m1kkY8/lockbox/src/teamodel"
 )
 
 func main() {

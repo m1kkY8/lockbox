@@ -3,7 +3,7 @@ package message
 import (
 	"crypto/rsa"
 
-	"github.com/m1kkY8/gochat/src/encryption"
+	"github.com/m1kkY8/lockbox/src/encryption"
 	"github.com/vmihailenco/msgpack/v5"
 )
 

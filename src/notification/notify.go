@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/gen2brain/beeep"
-	"github.com/m1kkY8/gochat/src/message"
+	"github.com/m1kkY8/lockbox/src/message"
 )
 
 func Notify(msg message.Message, author string) {

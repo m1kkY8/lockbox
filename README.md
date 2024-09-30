@@ -19,7 +19,7 @@
 1. Using go install
 
 ```bash
-go install github.com/m1kkY8/gochat@latest
+go install github.com/m1kkY8/lockbox@latest
 ```
 
 2. From source
@@ -30,7 +30,7 @@ go build && go install
 
 ## Usage
 
-- gochat -h for help
+- lockbox -h for help
 
 # Development
 

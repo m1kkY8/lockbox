@@ -8,10 +8,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/gorilla/websocket"
 
-	"github.com/m1kkY8/gochat/src/comps"
-	"github.com/m1kkY8/gochat/src/config"
-	"github.com/m1kkY8/gochat/src/encryption"
-	"github.com/m1kkY8/gochat/src/styles"
+	"github.com/m1kkY8/lockbox/src/comps"
+	"github.com/m1kkY8/lockbox/src/config"
+	"github.com/m1kkY8/lockbox/src/encryption"
+	"github.com/m1kkY8/lockbox/src/styles"
 )
 
 type Model struct {

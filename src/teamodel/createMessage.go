@@ -3,8 +3,8 @@ package teamodel
 import (
 	"time"
 
-	"github.com/m1kkY8/gochat/src/encryption"
-	"github.com/m1kkY8/gochat/src/message"
+	"github.com/m1kkY8/lockbox/src/encryption"
+	"github.com/m1kkY8/lockbox/src/message"
 )
 
 func (m *Model) createMessage(content string) message.Message {
