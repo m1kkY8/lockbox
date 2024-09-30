@@ -5,7 +5,15 @@ build:
 	@go build 
 
 run:
-	@gochat -ip sjdoo.zapto.org
+	@go build
+	@go install
+	@gochat -h sjdoo.zapto.org
+
+
+dev:
+	@go build
+	@go install
+	@gochat -h "localhost:1337" -u "test"
 
 clean:
 	@rm gochat

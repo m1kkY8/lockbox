@@ -1,6 +1,8 @@
 package teamodel
 
 import (
+	"crypto/rsa"
+
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -8,23 +10,30 @@ import (
 
 	"github.com/m1kkY8/gochat/src/comps"
 	"github.com/m1kkY8/gochat/src/config"
+	"github.com/m1kkY8/gochat/src/encryption"
 	"github.com/m1kkY8/gochat/src/styles"
 )
 
 type Model struct {
+	// User info
+	username    string
+	userColor   string
+	currentRoom string
+	// Model comps
+	width           int
+	height          int
 	input           textinput.Model
 	viewport        comps.Model
 	onlineUsers     comps.Model
 	styles          *styles.Styles
-	width           int
-	height          int
-	conn            *websocket.Conn
-	username        string
-	userColor       string
+	messageList     *MessageList
 	messageChannel  chan string
 	onlineUsersChan chan []string
-	messageList     *MessageList
-	currentRoom     string
+	PublicKeysChan  chan []*rsa.PublicKey
+	// Server side
+	conn       *websocket.Conn
+	keyPair    *encryption.RSAKeys
+	PublicKeys []*rsa.PublicKey
 }
 
 type MessageList struct {
@@ -34,7 +43,7 @@ type MessageList struct {
 
 var messageLimit = 100
 
-func New(conf config.Config, conn *websocket.Conn) *Model {
+func New(conf config.Config, conn *websocket.Conn, keyPair *encryption.RSAKeys) *Model {
 	styles := styles.DefaultStyle(conf.Color)
 
 	input := textinput.New()
@@ -60,7 +69,9 @@ func New(conf config.Config, conn *websocket.Conn) *Model {
 		messageList:     &MessageList{},
 		messageChannel:  make(chan string),
 		onlineUsersChan: make(chan []string),
+		PublicKeys:      []*rsa.PublicKey{},
 		currentRoom:     "",
+		keyPair:         keyPair,
 	}
 }
 

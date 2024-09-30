@@ -1,9 +1,9 @@
 package message
 
 import (
-	"fmt"
+	"crypto/rsa"
 
-	"github.com/charmbracelet/lipgloss"
+	"github.com/m1kkY8/gochat/src/encryption"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
@@ -11,34 +11,26 @@ var (
 	ServerMessage  = 1
 	ChatMessage    = 2
 	CommandMessage = 3
+	KeyMessage     = 4
 )
 
 type Message struct {
-	Type      int    `msgpack:"type"`
-	Author    string `msgpack:"author"`
-	Content   string `msgpack:"content"`
-	Room      string `msgpack:"room"`
-	To        string `msgpack:"to"`
-	Timestamp string `msgpack:"timestamp"`
-	Color     string `msgpack:"color"`
+	Type      int                 `msgpack:"type"`
+	Author    string              `msgpack:"author"`
+	Content   string              `msgpack:"content"`
+	Room      string              `msgpack:"room"`
+	To        string              `msgpack:"to"`
+	Timestamp string              `msgpack:"timestamp"`
+	Color     string              `msgpack:"color"`
+	AESKeys   []encryption.AESKey `msgpack:"aes_keys"`
 }
 
-// Parses Message into string format `timestamp user: message`
-func Format(message Message) string {
-	username := lipgloss.NewStyle().Foreground(lipgloss.Color(message.Color)).Render(message.Author)
-	timestamp := lipgloss.NewStyle().Foreground(lipgloss.Color(message.Color)).Render(message.Timestamp)
-	content := message.Content
-	return fmt.Sprintf("%s %s: %s", timestamp, username, content)
+type PublicKeys struct {
+	Type       int              `msgpack:"type"`
+	PublicKeys []*rsa.PublicKey `msgpack:"public_keys"`
 }
 
-func FormatWhisper(message Message) string {
-	username := lipgloss.NewStyle().Foreground(lipgloss.Color(message.Color)).Render(message.Author)
-	timestamp := lipgloss.NewStyle().Foreground(lipgloss.Color(message.Color)).Render(message.Timestamp)
-	content := message.Content
-
-	return fmt.Sprintf("%s (Whisper from %s): %s ", timestamp, username, content)
-}
-
+// Pack message into []byte
 func EncodeMessage(message Message) ([]byte, error) {
 	encodedMessage, err := msgpack.Marshal(message)
 	if err != nil {
