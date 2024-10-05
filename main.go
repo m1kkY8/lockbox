@@ -16,7 +16,7 @@ func main() {
 
 // Start the program
 func start() {
-	KeyPair, err := encryption.CreateKey()
+	KeyPair, err := encryption.CreateRsaKey()
 	if err != nil {
 		log.Println(err)
 		return

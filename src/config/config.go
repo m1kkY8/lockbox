@@ -13,10 +13,17 @@ type Config struct {
 	Username string
 	Color    string
 	Host     string
+	Secure   string
 }
 
 func GetUrl(c Config) url.URL {
-	scheme := "wss"
+	var scheme string
+	if c.Secure == "no" {
+		scheme = "ws"
+	} else {
+		scheme = "wss"
+	}
+
 	host := c.Host
 	path := "/ws"
 
@@ -33,6 +40,7 @@ func LoadConfig() *Config {
 	u := flag.String("u", "anon", "Username")
 	c := flag.String("c", "", "Color for your username, use -c help for all colors")
 	h := flag.String("h", "", "Address of server")
+	s := flag.String("s", "no", "Use secure protocol (yes/no)")
 	flag.Parse()
 
 	var config Config
@@ -40,6 +48,7 @@ func LoadConfig() *Config {
 	config.Color = *c
 	config.Username = *u
 	config.Host = *h
+	config.Secure = *s
 
 	if config.Color == "" {
 		*c = styles.GenerateRandomANSIColor()

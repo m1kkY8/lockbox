@@ -5,8 +5,8 @@ import (
 	"crypto/rsa"
 )
 
-func CreateKey() (*RSAKeys, error) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+func CreateRsaKey() (*RSAKeys, error) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return nil, err
 	}
