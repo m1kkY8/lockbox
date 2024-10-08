@@ -26,12 +26,6 @@ var (
 	// Button
 	focusedButton = focusedStyle.Render("[ Submit ]")
 	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
-
-	// Vars to store for config
-	host  string
-	nick  string
-	color string
-	https string
 )
 
 type model struct {
@@ -40,13 +34,13 @@ type model struct {
 	focusIndex int
 	inputs     []textinput.Model
 	cursorMode cursor.Mode
-	Config     *config.Config
+	config     *config.Config
 }
 
 func New(conf *config.Config) model {
 	m := model{
 		inputs: make([]textinput.Model, 4),
-		Config: conf,
+		config: conf,
 	}
 
 	var t textinput.Model
@@ -98,10 +92,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Did the user press enter while the submit button was focused?
 			// If so, exit.
 			if s == "enter" && m.focusIndex == len(m.inputs) {
-				m.Config.Host = m.inputs[0].Value()
-				m.Config.Username = m.inputs[1].Value()
-				m.Config.Color = m.inputs[2].Value()
-				m.Config.Secure = m.inputs[3].Value()
+				m.config.Host = m.inputs[0].Value()
+				m.config.Username = m.inputs[1].Value()
+				m.config.Color = m.inputs[2].Value()
+				m.config.Secure = m.inputs[3].Value()
 				return m, tea.Quit
 			}
 
@@ -181,9 +175,4 @@ func (m model) View() string {
 			b.String(),
 		),
 	)
-}
-
-// Vraca config koji treba da se validira
-func (m *model) GetConfig() *config.Config {
-	return m.Config
 }
