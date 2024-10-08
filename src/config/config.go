@@ -1,7 +1,6 @@
 package config
 
 import (
-	"flag"
 	"fmt"
 	"net/url"
 
@@ -36,29 +35,23 @@ func GetUrl(c Config) url.URL {
 	return u
 }
 
-func LoadConfig() *Config {
-	u := flag.String("u", "anon", "Username")
-	c := flag.String("c", "", "Color for your username, use -c help for all colors")
-	h := flag.String("h", "", "Address of server")
-	s := flag.String("s", "no", "Use secure protocol (yes/no)")
-	flag.Parse()
-
+// OVO JE MEGA FUCKED OVO TREBA POPRAVITI
+func LoadConfig(c Config) *Config {
 	var config Config
 
-	config.Color = *c
-	config.Username = *u
-	config.Host = *h
-	config.Secure = *s
-
-	if config.Color == "" {
-		*c = styles.GenerateRandomANSIColor()
-		config.Color = *c
-	}
+	config.Host = c.Host
+	config.Username = c.Username
+	config.Color = c.Color
+	config.Secure = c.Secure
 
 	return &config
 }
 
 func ValidateConfig(c Config) error {
+	if c.Color == "" {
+		c.Color = styles.GenerateRandomANSIColor()
+		return nil
+	}
 	if c.Color == "help" {
 		util.Colors()
 		return fmt.Errorf("Color list")
