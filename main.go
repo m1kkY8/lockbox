@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,11 +13,6 @@ import (
 )
 
 func main() {
-	start()
-}
-
-// Start the program
-func start() {
 	// Pravi novi login
 	var conf config.Config
 	loginPrompt := login.New(&conf)
@@ -29,15 +25,12 @@ func start() {
 	if _, err := p.Run(); err != nil {
 		log.Println(err)
 	}
-	// Ovde se zavrsava forma al ne znam dal ce da ucita config
+	if err := config.ValidateConfig(conf); err != nil {
+		return
+	}
 	// Novi rsa kljuc
 	KeyPair, err := encryption.CreateRsaKey()
 	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	if err := config.ValidateConfig(conf); err != nil {
 		log.Println(err)
 		return
 	}
@@ -46,17 +39,17 @@ func start() {
 
 	conn, err := connection.ConnectToServer(url.String())
 	if err != nil {
-		log.Printf("Error creating websocket connection: %v", err)
+		fmt.Println("Failed establishing connection")
 		return
 	}
 
 	if err := connection.SendHandshake(conn, conf, KeyPair.PublicKey); err != nil {
-		log.Println("error sending handshake")
+		fmt.Println("Failed sending initial handshake")
 		return
 	}
 
+	// pokreni glavnu formu
 	teaModel := teamodel.New(conf, conn, KeyPair)
-
 	p = tea.NewProgram(teaModel,
 		tea.WithAltScreen(),
 		tea.WithMouseCellMotion(),

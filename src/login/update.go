@@ -11,7 +11,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "esc":
+		case "ctrl+c", "ctrl+q", "esc":
 			return m, tea.Quit
 
 		// Set focus to next input

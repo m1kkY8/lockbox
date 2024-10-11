@@ -48,6 +48,9 @@ func LoadConfig(c Config) *Config {
 }
 
 func ValidateConfig(c Config) error {
+	if isEmpty(c) {
+		return fmt.Errorf("Empty config")
+	}
 	if c.Color == "" {
 		c.Color = styles.GenerateRandomANSIColor()
 		return nil
@@ -61,4 +64,11 @@ func ValidateConfig(c Config) error {
 		return fmt.Errorf("please provide IP and port of server and try again, use -h for help")
 	}
 	return nil
+}
+
+func isEmpty(c Config) bool {
+	if c.Host == "" && c.Color == "" && c.Username == "" && c.Secure == "" {
+		return true
+	}
+	return false
 }
