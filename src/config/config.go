@@ -24,7 +24,7 @@ func GetUrl(c Config) url.URL {
 	}
 
 	host := c.Host
-	path := "/ws"
+	path := "/"
 
 	// Construct URL
 	u := url.URL{
@@ -33,18 +33,6 @@ func GetUrl(c Config) url.URL {
 		Path:   path,
 	}
 	return u
-}
-
-// OVO JE MEGA FUCKED OVO TREBA POPRAVITI
-func LoadConfig(c Config) *Config {
-	var config Config
-
-	config.Host = c.Host
-	config.Username = c.Username
-	config.Color = c.Color
-	config.Secure = c.Secure
-
-	return &config
 }
 
 func ValidateConfig(c Config) error {
