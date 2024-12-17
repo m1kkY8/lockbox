@@ -4,10 +4,8 @@ import (
 	"log"
 	"strings"
 
-	// "github.com/m1kkY8/lockbox/src/encryption"
 	"github.com/m1kkY8/lockbox/src/encryption"
 	"github.com/m1kkY8/lockbox/src/message"
-	"github.com/m1kkY8/lockbox/src/notification"
 	"github.com/vmihailenco/msgpack/v5"
 )
 
@@ -62,7 +60,9 @@ func (m *Model) recieveMessages() {
 
 			formattedMessage := message.Format(decodedMsg)
 			m.messageChannel <- formattedMessage
-			notification.Notify(decodedMsg, m.username)
+			// figure out how to fix this to work on systems that dont have any gui
+			// or notification deamons (fucking servers and ssh)
+			// notification.Notify(decodedMsg, m.username)
 
 		default:
 			continue
