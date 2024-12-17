@@ -16,15 +16,9 @@ type Config struct {
 }
 
 func GetUrl(c Config) url.URL {
-	var scheme string
-	if c.Secure == "no" {
-		scheme = "ws"
-	} else {
-		scheme = "wss"
-	}
-
+	scheme := "wss"
 	host := c.Host
-	path := "/"
+	path := "/chat"
 
 	// Construct URL
 	u := url.URL{

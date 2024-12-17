@@ -24,7 +24,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.config.Host = m.inputs[0].Value()
 				m.config.Username = m.inputs[1].Value()
 				m.config.Color = m.inputs[2].Value()
-				m.config.Secure = m.inputs[3].Value()
 				return m, tea.Quit
 			}
 

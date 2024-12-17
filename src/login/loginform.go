@@ -21,8 +21,8 @@ var (
 	cursorModeHelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
 
 	// Buttons
-	focusedButton      = focusedStyle.Render("[ Submit ]")
-	blurredButton      = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
+	focusedButton = focusedStyle.Render("[ Submit ]")
+	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render("Submit"))
 )
 
 type model struct {
@@ -36,7 +36,7 @@ type model struct {
 
 func New(conf *config.Config) model {
 	m := model{
-		inputs: make([]textinput.Model, 4),
+		inputs: make([]textinput.Model, 3),
 		config: conf,
 	}
 
@@ -56,8 +56,6 @@ func New(conf *config.Config) model {
 			t.Placeholder = "Nickname"
 		case 2:
 			t.Placeholder = "Color"
-		case 3:
-			t.Placeholder = "HTTPS (yes/no)?"
 		}
 
 		m.inputs[i] = t
