@@ -2,7 +2,7 @@ BINARY_NAME=./bin/client
 GO_MAIN=./main.go
 
 build:
-	@go build 
+	@go build -ldflags "-w -s"
 
 run:
 	@go build
@@ -19,7 +19,7 @@ clean:
 	@rm lockbox
 
 install:
-	@go build
+	@go build -ldflags "-w -s"
 	@go install
 
 .PHONY: build run install clean
