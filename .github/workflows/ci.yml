@@ -1,4 +1,4 @@
-name: Build and Release
+name: Test and Build
 
 on:
   push:
@@ -44,24 +44,3 @@ jobs:
       with:
         name: lockbox-${{ matrix.os }}-${{ matrix.arch }}
         path: dist/
-
-  release:
-    needs: [test-and-build]
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: artifacts
-    
-    - name: Create Release
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: v${{ github.run_number }}
-        name: Release v${{ github.run_number }}
-        files: artifacts/*/lockbox-*
-        generate_release_notes: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
