@@ -7,32 +7,28 @@ import (
 	"github.com/m1kkY8/lockbox/src/message"
 )
 
+// joinRoom handles joining a chat room
 func (m *Model) joinRoom(room string) {
 	// Update the client's current room locally
-	m.currentRoom = room
-	m.input.Placeholder = "Message " + "[" + m.currentRoom + "]:"
+	m.state.CurrentRoom = room
+	m.ui.Input.Placeholder = "Message " + "[" + m.state.CurrentRoom + "]:"
 	m.clear()
 
 	var joinMessage message.Message
-
 	joinMessage.Type = message.CommandMessage
-	joinMessage.Author = m.username
-	joinMessage.Content = fmt.Sprintf("/join %s", m.currentRoom)
+	joinMessage.Author = m.state.Username
+	joinMessage.Content = fmt.Sprintf("/join %s", m.state.CurrentRoom)
 
 	bytes, err := message.EncodeMessage(joinMessage)
 	if err != nil {
 		return
 	}
 
-	// Create the /join command to send to the server
-
-	// Send the /join message to the server over WebSocket
-	if m.conn != nil {
-		err := m.conn.WriteMessage(websocket.BinaryMessage, bytes)
+	// Send the join message to the server over WebSocket
+	if m.client.Conn != nil {
+		err := m.client.Conn.WriteMessage(websocket.BinaryMessage, bytes)
 		if err != nil {
 			fmt.Println("Error sending join message:", err)
 		}
 	}
-
-	return
 }

@@ -7,51 +7,63 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// returns a string containg the message
+// listenForMessages returns a command that listens for incoming messages
 func (m *Model) listenForMessages() tea.Cmd {
 	return func() tea.Msg {
-		return <-m.messageChannel
+		return <-m.channels.Messages
 	}
 }
 
-// Handles messages displayed in model
+// displayMessages handles messages displayed in the UI
 func (m *Model) displayMessages(msg string) {
-	m.messageList.messages = append(m.messageList.messages, msg)
-	m.messageList.count++
+	messageList := m.state.MessageList
+	messageList.messages = append(messageList.messages, msg)
+	messageList.count++
 
-	// if there are more messages than limit pop the oldest from array
-	if m.messageList.count > messageLimit {
-		m.messageList.messages = m.messageList.messages[1:]
-		m.messageList.count--
+	// If there are more messages than limit, remove the oldest
+	if messageList.count > MessageLimit {
+		messageList.messages = messageList.messages[1:]
+		messageList.count--
 	}
 
-	m.viewport.SetContent(strings.Join(m.messageList.messages, "\n"))
-	m.viewport.GotoBottom()
+	content := strings.Join(messageList.messages, "\n")
+	m.ui.Viewport.SetContent(content)
+	m.ui.Viewport.GotoBottom()
 }
 
-// returns a []string of online users
+// listenForOnlineUsers returns a command that listens for online user updates
 func (m *Model) listenForOnlineUsers() tea.Cmd {
 	return func() tea.Msg {
-		return <-m.onlineUsersChan
+		return <-m.channels.OnlineUsers
 	}
 }
 
-// Handles array of online users displayed in model
-func (m *Model) displayOnlineUsers(msg []string) {
-	for i, name := range msg {
-		tokens := strings.Split(name, ":")
-		msg[i] = lipgloss.NewStyle().Foreground(lipgloss.Color(tokens[0])).Render(tokens[1])
+// displayOnlineUsers handles the display of online users in the UI
+func (m *Model) displayOnlineUsers(users []string) {
+	// Apply color styling to each username
+	for i, user := range users {
+		tokens := strings.Split(user, ":")
+		if len(tokens) >= 2 {
+			colorCode := tokens[0]
+			username := tokens[1]
+			users[i] = lipgloss.NewStyle().
+				Foreground(lipgloss.Color(colorCode)).
+				Render(username)
+		}
 	}
 
-	title := m.styles.OnlineTitle.Render("Online:") + "\n"
-
-	m.onlineUsers.SetContent(title + strings.Join(msg, "\n"))
+	title := m.ui.Styles.OnlineTitle.Render("Online:") + "\n"
+	content := title + strings.Join(users, "\n")
+	m.ui.OnlineUsers.SetContent(content)
 }
 
-// Clears all messages
+// clear removes all messages from the chat display
 func (m *Model) clear() {
-	m.messageList.messages = nil
-	m.messageList.count = 0
-	m.viewport.SetContent(strings.Join(m.messageList.messages, "\n"))
-	m.viewport.GotoBottom()
+	messageList := m.state.MessageList
+	messageList.messages = nil
+	messageList.count = 0
+
+	content := strings.Join(messageList.messages, "\n")
+	m.ui.Viewport.SetContent(content)
+	m.ui.Viewport.GotoBottom()
 }

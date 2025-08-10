@@ -14,89 +14,202 @@ import (
 	"github.com/m1kkY8/lockbox/src/styles"
 )
 
-type Model struct {
-	// User info
-	username    string
-	userColor   string
-	currentRoom string
-	// Model comps
-	width           int
-	height          int
-	input           textinput.Model
-	viewport        comps.Model
-	onlineUsers     comps.Model
-	styles          *styles.Styles
-	messageList     *MessageList
-	messageChannel  chan string
-	onlineUsersChan chan []string
-	PublicKeysChan  chan []*rsa.PublicKey
-	// Server side
-	conn       *websocket.Conn
-	keyPair    *encryption.RSAKeys
+// Constants for UI configuration
+const (
+	MessageLimit        = 100
+	DefaultInputWidth   = 50
+	DefaultViewportSize = 20
+	DefaultOnlineWidth  = 20
+)
+
+// Default messages
+const (
+	WelcomeMessage      = "Welcome, start messaging"
+	OnlineUsersTitle    = "Online"
+	JoinRoomPlaceholder = "Join any room to start typing"
+)
+
+// UIComponents groups all UI-related components
+type UIComponents struct {
+	Width       int
+	Height      int
+	Input       textinput.Model
+	Viewport    comps.Model
+	OnlineUsers comps.Model
+	Styles      *styles.Styles
+}
+
+// ChatState holds the current state of the chat session
+type ChatState struct {
+	Username    string
+	UserColor   string
+	CurrentRoom string
+	MessageList *MessageList
+}
+
+// ChatClient handles network and cryptographic operations
+type ChatClient struct {
+	Conn       *websocket.Conn
+	KeyPair    *encryption.RSAKeys
 	PublicKeys []*rsa.PublicKey
 }
 
+// MessageChannels groups all communication channels
+type MessageChannels struct {
+	Messages    chan string
+	OnlineUsers chan []string
+	PublicKeys  chan []*rsa.PublicKey
+}
+
+// Model represents the main TUI model for the chat application
+type Model struct {
+	// UI components
+	ui UIComponents
+
+	// Chat state
+	state ChatState
+
+	// Network and crypto
+	client ChatClient
+
+	// Communication channels
+	channels MessageChannels
+}
+
+// MessageList represents a collection of chat messages
 type MessageList struct {
 	messages []string
 	count    int
 }
 
-var messageLimit = 100
-
+// New creates a new Model instance with the provided configuration
 func New(conf config.Config, conn *websocket.Conn, keyPair *encryption.RSAKeys) *Model {
-	styles := styles.DefaultStyle(conf.Color)
+	appStyles := styles.DefaultStyle(conf.Color)
 
 	input := textinput.New()
 	input.Prompt = ""
-	input.Placeholder = "Join any room to start typing"
-	input.Width = 50
+	input.Placeholder = JoinRoomPlaceholder
+	input.Width = DefaultInputWidth
 	input.Focus()
 
-	vp := comps.New(50, 20)
-	vp.SetContent("Welcome, start messaging")
+	vp := comps.New(DefaultInputWidth, DefaultViewportSize)
+	vp.SetContent(WelcomeMessage)
 
-	onlineList := comps.New(20, 20)
-	onlineList.SetContent("Online")
+	onlineList := comps.New(DefaultOnlineWidth, DefaultViewportSize)
+	onlineList.SetContent(OnlineUsersTitle)
 
 	return &Model{
-		conn:            conn,
-		userColor:       conf.Color,
-		username:        conf.Username,
-		input:           input,
-		styles:          styles,
-		viewport:        vp,
-		onlineUsers:     onlineList,
-		messageList:     &MessageList{},
-		messageChannel:  make(chan string),
-		onlineUsersChan: make(chan []string),
-		PublicKeys:      []*rsa.PublicKey{},
-		currentRoom:     "",
-		keyPair:         keyPair,
+		ui: UIComponents{
+			Input:       input,
+			Styles:      appStyles,
+			Viewport:    vp,
+			OnlineUsers: onlineList,
+		},
+		state: ChatState{
+			UserColor:   conf.Color,
+			Username:    conf.Username,
+			CurrentRoom: "",
+			MessageList: &MessageList{},
+		},
+		client: ChatClient{
+			Conn:       conn,
+			KeyPair:    keyPair,
+			PublicKeys: make([]*rsa.PublicKey, 0),
+		},
+		channels: MessageChannels{
+			Messages:    make(chan string),
+			OnlineUsers: make(chan []string),
+			PublicKeys:  make(chan []*rsa.PublicKey),
+		},
 	}
 }
 
+// View renders the TUI layout
 func (m *Model) View() string {
 	return lipgloss.Place(
-		m.width,
-		m.height,
+		m.ui.Width,
+		m.ui.Height,
 		lipgloss.Center,
 		lipgloss.Center,
 		lipgloss.JoinVertical(
 			lipgloss.Center,
 			lipgloss.JoinHorizontal(
 				lipgloss.Center,
-				m.styles.Border.Render(m.viewport.View()),
-				m.styles.Border.Render(m.onlineUsers.View()),
+				m.ui.Styles.Border.Render(m.ui.Viewport.View()),
+				m.ui.Styles.Border.Render(m.ui.OnlineUsers.View()),
 			),
-			m.styles.Border.Render(m.input.View()),
+			m.ui.Styles.Border.Render(m.ui.Input.View()),
 		),
 	)
 }
 
+// Init initializes the model and starts background processes
 func (m *Model) Init() tea.Cmd {
-	go m.recieveMessages()
+	go m.recieveMessages() // Keep the original method name for now
 	return tea.Batch(
 		m.listenForMessages(),
 		m.listenForOnlineUsers(),
 	)
+}
+
+// Getter methods for backward compatibility and clean access
+func (m *Model) Username() string {
+	return m.state.Username
+}
+
+func (m *Model) CurrentRoom() string {
+	return m.state.CurrentRoom
+}
+
+func (m *Model) SetCurrentRoom(room string) {
+	m.state.CurrentRoom = room
+}
+
+func (m *Model) Connection() *websocket.Conn {
+	return m.client.Conn
+}
+
+func (m *Model) KeyPair() *encryption.RSAKeys {
+	return m.client.KeyPair
+}
+
+func (m *Model) PublicKeys() []*rsa.PublicKey {
+	return m.client.PublicKeys
+}
+
+func (m *Model) SetPublicKeys(keys []*rsa.PublicKey) {
+	m.client.PublicKeys = keys
+}
+
+func (m *Model) MessageChannel() chan string {
+	return m.channels.Messages
+}
+
+func (m *Model) OnlineUsersChannel() chan []string {
+	return m.channels.OnlineUsers
+}
+
+func (m *Model) Input() *textinput.Model {
+	return &m.ui.Input
+}
+
+func (m *Model) Viewport() *comps.Model {
+	return &m.ui.Viewport
+}
+
+func (m *Model) OnlineUsers() *comps.Model {
+	return &m.ui.OnlineUsers
+}
+
+func (m *Model) Styles() *styles.Styles {
+	return m.ui.Styles
+}
+
+func (m *Model) SetDimensions(width, height int) {
+	m.ui.Width = width
+	m.ui.Height = height
+}
+
+func (m *Model) MessageList() *MessageList {
+	return m.state.MessageList
 }
